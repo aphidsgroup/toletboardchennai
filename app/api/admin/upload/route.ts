@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 import { isAuthenticated } from '@/lib/auth';
+import { supabaseAdmin, STORAGE_BUCKET } from '@/lib/supabase';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -47,18 +46,34 @@ export async function POST(request: NextRequest) {
             const randomString = Math.random().toString(36).substring(2, 15);
             const extension = file.name.split('.').pop();
             const filename = `${timestamp}-${randomString}.${extension}`;
+            const filePath = `properties/${filename}`;
 
-            // Convert file to buffer
+            // Convert file to buffer for Supabase upload
             const bytes = await file.arrayBuffer();
             const buffer = Buffer.from(bytes);
 
-            // Save file
-            const uploadDir = join(process.cwd(), 'public', 'uploads', 'properties');
-            const filepath = join(uploadDir, filename);
-            await writeFile(filepath, buffer);
+            // Upload to Supabase Storage
+            const { error: uploadError } = await supabaseAdmin.storage
+                .from(STORAGE_BUCKET)
+                .upload(filePath, buffer, {
+                    contentType: file.type,
+                    upsert: false,
+                });
 
-            // Store relative path (from public directory)
-            uploadedPaths.push(`/uploads/properties/${filename}`);
+            if (uploadError) {
+                console.error('Supabase upload error:', uploadError);
+                return NextResponse.json(
+                    { error: `Failed to upload ${file.name}: ${uploadError.message}` },
+                    { status: 500 }
+                );
+            }
+
+            // Get public URL
+            const { data: urlData } = supabaseAdmin.storage
+                .from(STORAGE_BUCKET)
+                .getPublicUrl(filePath);
+
+            uploadedPaths.push(urlData.publicUrl);
         }
 
         return NextResponse.json({ paths: uploadedPaths }, { status: 200 });
