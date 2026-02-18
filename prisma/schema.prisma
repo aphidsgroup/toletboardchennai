@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Property {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  dealType        String   // "rent" or "lease"
+  usageType       String   // "residential" or "commercial"
+  propertySubtype String?  // e.g., "apartment", "villa", "office"
+  areaName        String
+  city            String   @default("Chennai")
+  priceInr        Int
+  sizeSqft        Int
+  bedrooms        Int?
+  bathrooms       Int?
+  parking         String?  // e.g., "2 covered", "1 open"
+  topFacilities   String?  // JSON array: ["Swimming Pool", "Gymnasium", ...]
+  locationAdvantages String? // JSON array: [{name: "School Name", type: "School", distance: "2.5 Kms"}, ...]
+  
+  // Specifications
+  floorNumber       Int?     // e.g., 12
+  totalFloors       Int?     // e.g., 19
+  furnishing        String?  // "Fully Furnished", "Semi Furnished", "Unfurnished"
+  tenantPreference  String?  // "Family", "Single Men", "Single Women", "Anyone"
+  carpetAreaSqft    Int?     // Carpet area (usable area)
+  availableFrom     DateTime?
+  propertyAge       String?  // "0-1 Year", "1-5 Years", "5-10 Years", "10+ Years", "Under Construction"
+  
+  // Dynamic Property Details & Custom Sections
+  propertyDetails  String?  // JSON: [{key: "Layout", value: "3 BHK"}, ...]
+  customSections   String?  // JSON: [{id, title, type, content}, ...]
+  sectionOrder     String?  // JSON: ["basic-info", "specs", "custom-1", ...]
+  
+  tourEmbedUrl    String
+  images          String?  // JSON array of image paths
+  advanceMonths   Int?     // For rent: 3, 6, 9, or 12 months
+  leasePeriodYears Int?    // For lease: 1-10 years
+  isPublished     Boolean  @default(false)
+  isFeatured      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([dealType])
+  @@index([usageType])
+  @@index([areaName])
+  @@index([isPublished])
+  @@index([isFeatured])
+}
+
+model SiteSettings {
+  id                   String   @id @default(cuid())
+  brandName            String   @default("Tolet Board Chennai")
+  tagline              String   @default("360° Tours • Rent & Lease • Chennai")
+  city                 String   @default("Chennai")
+  whatsappNumber       String   @default("+919876543210")
+  phoneNumber          String   @default("+919876543210")
+  whatsappTemplate     String   @default("Hi, I'm interested in {propertyTitle}. Link: {propertyUrl}")
+  updatedAt            DateTime @updatedAt
+}
