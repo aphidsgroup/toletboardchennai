@@ -5,12 +5,38 @@ import { supabaseAdmin, STORAGE_BUCKET } from '@/lib/supabase';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
+// Ensure the storage bucket exists (auto-creates on first use)
+let bucketEnsured = false;
+async function ensureBucket() {
+    if (bucketEnsured) return;
+
+    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
+    const exists = buckets?.some(b => b.id === STORAGE_BUCKET);
+
+    if (!exists) {
+        const { error } = await supabaseAdmin.storage.createBucket(STORAGE_BUCKET, {
+            public: true,
+            fileSizeLimit: MAX_FILE_SIZE,
+            allowedMimeTypes: ALLOWED_TYPES,
+        });
+        if (error && !error.message.includes('already exists')) {
+            console.error('Failed to create bucket:', error);
+            throw new Error('Storage bucket creation failed');
+        }
+    }
+
+    bucketEnsured = true;
+}
+
 export async function POST(request: NextRequest) {
     if (!(await isAuthenticated())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
+        // Auto-create bucket if it doesn't exist
+        await ensureBucket();
+
         const formData = await request.formData();
         const files = formData.getAll('images') as File[];
 
