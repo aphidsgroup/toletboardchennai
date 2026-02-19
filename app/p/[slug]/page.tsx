@@ -104,12 +104,13 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {images.map((imagePath: string, index: number) => (
                                         <div key={index} className="relative group">
-                                            <img
-                                                src={imagePath}
-                                                alt={`${property.title} - Image ${index + 1}`}
-                                                className="w-full h-64 object-cover rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-                                                onClick={() => window.open(imagePath, '_blank')}
-                                            />
+                                            <a href={imagePath} target="_blank" rel="noopener noreferrer">
+                                                <img
+                                                    src={imagePath}
+                                                    alt={`${property.title} - Image ${index + 1}`}
+                                                    className="w-full h-64 object-cover rounded-xl shadow-md hover:shadow-xl transition-shadow cursor-pointer"
+                                                />
+                                            </a>
                                             {index === 0 && (
                                                 <span className="absolute top-3 left-3 bg-primary-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
                                                     Main Photo
@@ -125,32 +126,32 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                 })()}
 
                 {/* 360° Tour */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                        360° Virtual Tour
-                    </h2>
-                    {/* Portrait on mobile (133% = 3:4 ratio), landscape on desktop (56.25% = 16:9 ratio) */}
-                    <div className="relative w-full bg-gray-900 rounded-2xl overflow-hidden shadow-2xl md:pb-[56.25%] pb-[133%]">
-                        {(() => {
-                            const isTeleportMe = property.tourEmbedUrl.includes('tours.realprop360.in') || property.tourEmbedUrl.includes('teleportme');
-                            console.log('Tour URL:', property.tourEmbedUrl);
-                            console.log('Is TeleportMe?', isTeleportMe);
+                {property.tourEmbedUrl && (
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                            360° Virtual Tour
+                        </h2>
+                        {/* Portrait on mobile (133% = 3:4 ratio), landscape on desktop (56.25% = 16:9 ratio) */}
+                        <div className="relative w-full bg-gray-900 rounded-2xl overflow-hidden shadow-2xl md:pb-[56.25%] pb-[133%]">
+                            {(() => {
+                                const isTeleportMe = property.tourEmbedUrl!.includes('tours.realprop360.in') || property.tourEmbedUrl!.includes('teleportme');
 
-                            return isTeleportMe ? (
-                                <TeleportMeEmbed tourUrl={property.tourEmbedUrl} />
-                            ) : (
-                                <iframe
-                                    src={property.tourEmbedUrl}
-                                    className="absolute top-0 left-0 w-full h-full"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                    allowFullScreen
-                                    loading="lazy"
-                                    title={`360° Tour of ${property.title}`}
-                                />
-                            );
-                        })()}
+                                return isTeleportMe ? (
+                                    <TeleportMeEmbed tourUrl={property.tourEmbedUrl!} />
+                                ) : (
+                                    <iframe
+                                        src={property.tourEmbedUrl!}
+                                        className="absolute top-0 left-0 w-full h-full"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                        allowFullScreen
+                                        loading="lazy"
+                                        title={`360° Tour of ${property.title}`}
+                                    />
+                                );
+                            })()}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Specs */}
                 <div className="mb-8">
