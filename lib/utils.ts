@@ -129,10 +129,40 @@ export function stringifySectionOrder(order: string[]): string {
     return JSON.stringify(order);
 }
 
+// Section Names utilities
+export interface SectionNames {
+    [key: string]: string;
+}
+
+export const DEFAULT_SECTION_NAMES: SectionNames = {
+    'basic-info': 'Overview',
+    'tour': '360° Virtual Tour',
+    'specifications': 'Specifications',
+    'additional-details': 'Additional Details',
+    'property-details': 'Property Details',
+    'facilities': 'Top Facilities',
+    'locations': 'Location Advantages',
+};
+
+export function parseSectionNames(namesJson: string | null): SectionNames {
+    if (!namesJson) return {};
+    try {
+        return JSON.parse(namesJson);
+    } catch {
+        return {};
+    }
+}
+
+export function stringifySectionNames(names: SectionNames): string {
+    return JSON.stringify(names);
+}
+
 // Default section order
 export const DEFAULT_SECTION_ORDER = [
     'basic-info',
+    'tour',
     'specifications',
+    'additional-details',
     'property-details',
     'facilities',
     'locations',

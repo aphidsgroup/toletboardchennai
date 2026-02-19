@@ -1,8 +1,32 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import PropertyCard from '@/components/PropertyCard';
 import FilterSheet from '@/components/FilterSheet';
 import { DealType, UsageType } from '@/lib/types';
+
+export async function generateMetadata({ searchParams }: ListPageProps): Promise<Metadata> {
+    const params = await searchParams;
+    const parts: string[] = [];
+    if (params.deal) parts.push(params.deal === 'rent' ? 'Rent' : 'Lease');
+    if (params.use) parts.push(params.use === 'residential' ? 'Residential' : 'Commercial');
+    parts.push('Properties');
+    if (params.area) parts.push(`in ${params.area}`);
+    parts.push('| Chennai');
+
+    const title = parts.join(' ');
+    const description = `Browse ${params.deal || 'all'} ${params.use || ''} properties ${params.area ? `in ${params.area}, ` : ''}Chennai with 360° virtual tours. Compare prices, sizes, and amenities.`;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: 'website',
+        },
+    };
+}
 
 interface ListPageProps {
     searchParams: Promise<{

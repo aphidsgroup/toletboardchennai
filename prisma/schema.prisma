@@ -48,8 +48,9 @@ model Property {
   propertyDetails  String?  // JSON: [{key: "Layout", value: "3 BHK"}, ...]
   customSections   String?  // JSON: [{id, title, type, content}, ...]
   sectionOrder     String?  // JSON: ["basic-info", "specs", "custom-1", ...]
+  sectionNames     String?  // JSON: {"specifications": "Key Highlights", ...}
   
-  tourEmbedUrl    String
+  tourEmbedUrl    String?  // Made optional
   images          String?  // JSON array of image paths
   advanceMonths   Int?     // For rent: 3, 6, 9, or 12 months
   leasePeriodYears Int?    // For lease: 1-10 years

@@ -18,7 +18,11 @@ import {
     type CustomSection,
     parseSectionOrder,
     stringifySectionOrder,
-    DEFAULT_SECTION_ORDER
+    parseSectionNames,
+    stringifySectionNames,
+    DEFAULT_SECTION_ORDER,
+    DEFAULT_SECTION_NAMES,
+    type SectionNames,
 } from '@/lib/utils';
 
 interface PropertyFormProps {
@@ -60,7 +64,8 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
         // Property Details & Custom Sections
         propertyDetails: property ? parsePropertyDetails(property.propertyDetails) : [],
         customSections: property ? parseCustomSections(property.customSections) : [],
-        sectionOrder: property ? parseSectionOrder(property.sectionOrder) : DEFAULT_SECTION_ORDER,
+        sectionOrder: property ? (parseSectionOrder(property.sectionOrder).length > 0 ? parseSectionOrder(property.sectionOrder) : DEFAULT_SECTION_ORDER) : DEFAULT_SECTION_ORDER,
+        sectionNames: property ? parseSectionNames((property as any).sectionNames) : {},
 
         tourEmbedUrl: property?.tourEmbedUrl || '',
         images: property?.images ? JSON.parse(property.images) : [],
@@ -102,6 +107,7 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
                 propertyDetails: stringifyPropertyDetails(formData.propertyDetails),
                 customSections: stringifyCustomSections(formData.customSections),
                 sectionOrder: stringifySectionOrder(formData.sectionOrder),
+                sectionNames: stringifySectionNames(formData.sectionNames),
 
                 images: JSON.stringify(formData.images),
             };
@@ -237,6 +243,76 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
             return { ...prev, sectionOrder: newOrder };
         });
     };
+
+    // Section Names handlers
+    const updateSectionName = (sectionId: string, name: string) => {
+        setFormData(prev => ({
+            ...prev,
+            sectionNames: { ...prev.sectionNames, [sectionId]: name }
+        }));
+    };
+
+    // Custom section content handlers
+    const addCustomSectionRow = (sectionId: string) => {
+        setFormData(prev => ({
+            ...prev,
+            customSections: prev.customSections.map(s =>
+                s.id === sectionId && Array.isArray(s.content)
+                    ? { ...s, content: [...(s.content as PropertyDetail[]), { key: '', value: '' }] }
+                    : s
+            )
+        }));
+    };
+
+    const removeCustomSectionRow = (sectionId: string, rowIndex: number) => {
+        setFormData(prev => ({
+            ...prev,
+            customSections: prev.customSections.map(s =>
+                s.id === sectionId && Array.isArray(s.content)
+                    ? { ...s, content: (s.content as PropertyDetail[]).filter((_, i) => i !== rowIndex) }
+                    : s
+            )
+        }));
+    };
+
+    const updateCustomSectionRow = (sectionId: string, rowIndex: number, field: 'key' | 'value', value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            customSections: prev.customSections.map(s =>
+                s.id === sectionId && Array.isArray(s.content)
+                    ? {
+                        ...s,
+                        content: (s.content as PropertyDetail[]).map((row, i) =>
+                            i === rowIndex ? { ...row, [field]: value } : row
+                        )
+                    }
+                    : s
+            )
+        }));
+    };
+
+    // Toggle section in order (add/remove)
+    const toggleSectionInOrder = (sectionId: string) => {
+        setFormData(prev => {
+            if (prev.sectionOrder.includes(sectionId)) {
+                return { ...prev, sectionOrder: prev.sectionOrder.filter(id => id !== sectionId) };
+            } else {
+                return { ...prev, sectionOrder: [...prev.sectionOrder, sectionId] };
+            }
+        });
+    };
+
+    // Get display name for a section
+    const getSectionDisplayName = (sectionId: string): string => {
+        if (formData.sectionNames[sectionId]) return formData.sectionNames[sectionId];
+        if (DEFAULT_SECTION_NAMES[sectionId]) return DEFAULT_SECTION_NAMES[sectionId];
+        const custom = formData.customSections.find(s => s.id === sectionId);
+        return custom?.title || sectionId;
+    };
+
+    // All available section IDs
+    const allBuiltInSections = ['basic-info', 'tour', 'specifications', 'property-details', 'facilities', 'locations'];
+    const allSectionIds = [...allBuiltInSections, ...formData.customSections.map(s => s.id)];
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -912,6 +988,213 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Custom Sections */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Custom Sections</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Add your own sections to the property page</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={addCustomSection}
+                        className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
+                    >
+                        + Add Section
+                    </button>
+                </div>
+
+                <div className="space-y-6">
+                    {formData.customSections.map((section) => (
+                        <div key={section.id} className="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                            {/* Section Header */}
+                            <div className="flex items-center gap-3 mb-4">
+                                <input
+                                    type="text"
+                                    value={section.title}
+                                    onChange={(e) => updateCustomSection(section.id, { title: e.target.value })}
+                                    placeholder="Section Title"
+                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold focus:ring-2 focus:ring-primary-500"
+                                />
+                                <select
+                                    value={section.type}
+                                    onChange={(e) => updateCustomSection(section.id, {
+                                        type: e.target.value as 'keyvalue' | 'text',
+                                        content: e.target.value === 'keyvalue' ? [] : ''
+                                    })}
+                                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                                >
+                                    <option value="keyvalue">Key-Value Table</option>
+                                    <option value="text">Text Paragraph</option>
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (confirm(`Delete section "${section.title}"?`)) {
+                                            removeCustomSection(section.id);
+                                        }
+                                    }}
+                                    className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+
+                            {/* Key-Value Content */}
+                            {section.type === 'keyvalue' && Array.isArray(section.content) && (
+                                <div className="space-y-2">
+                                    {(section.content as PropertyDetail[]).map((row, rowIndex) => (
+                                        <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                            <div className="md:col-span-5">
+                                                <input
+                                                    type="text"
+                                                    value={row.key}
+                                                    onChange={(e) => updateCustomSectionRow(section.id, rowIndex, 'key', e.target.value)}
+                                                    placeholder="Key (e.g., Floor Type)"
+                                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-5">
+                                                <input
+                                                    type="text"
+                                                    value={row.value}
+                                                    onChange={(e) => updateCustomSectionRow(section.id, rowIndex, 'value', e.target.value)}
+                                                    placeholder="Value (e.g., Vitrified Tiles)"
+                                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeCustomSectionRow(section.id, rowIndex)}
+                                                    className="w-full px-3 py-2 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 text-red-600 dark:text-red-300 rounded-lg text-sm font-medium transition-colors"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => addCustomSectionRow(section.id)}
+                                        className="w-full py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-primary-400 hover:text-primary-500 transition-colors text-sm"
+                                    >
+                                        + Add Row
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Text Content */}
+                            {section.type === 'text' && (
+                                <textarea
+                                    value={typeof section.content === 'string' ? section.content : ''}
+                                    onChange={(e) => updateCustomSection(section.id, { content: e.target.value })}
+                                    placeholder="Write your section content here..."
+                                    rows={4}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                                />
+                            )}
+                        </div>
+                    ))}
+
+                    {formData.customSections.length === 0 && (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                            No custom sections yet. Click &quot;+ Add Section&quot; to create one.
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Section Order & Names */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                <div className="mb-4">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Section Order & Names</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Reorder sections, toggle visibility, and rename headings on the property page</p>
+                </div>
+
+                <div className="space-y-2">
+                    {formData.sectionOrder.map((sectionId, index) => (
+                        <div key={sectionId} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                            {/* Reorder buttons */}
+                            <div className="flex flex-col gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => moveSectionUp(index)}
+                                    disabled={index === 0}
+                                    className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Move up"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => moveSectionDown(index)}
+                                    disabled={index === formData.sectionOrder.length - 1}
+                                    className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Move down"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {/* Section name (editable) */}
+                            <div className="flex-1">
+                                <input
+                                    type="text"
+                                    value={formData.sectionNames[sectionId] || getSectionDisplayName(sectionId)}
+                                    onChange={(e) => updateSectionName(sectionId, e.target.value)}
+                                    className="w-full px-3 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500"
+                                />
+                            </div>
+
+                            {/* Type badge */}
+                            <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-full whitespace-nowrap">
+                                {allBuiltInSections.includes(sectionId) ? 'Built-in' : 'Custom'}
+                            </span>
+
+                            {/* Remove from order (hide) */}
+                            <button
+                                type="button"
+                                onClick={() => toggleSectionInOrder(sectionId)}
+                                className="p-2 text-red-400 hover:text-red-600 transition-colors"
+                                title="Hide this section"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.44 6.44m7.072 7.072l3.534 3.535M6.44 6.44L3 3m3.44 3.44l4.242 4.242m5.416 5.416L21 21" />
+                                </svg>
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Hidden sections - show button to re-add */}
+                {allSectionIds.filter(id => !formData.sectionOrder.includes(id)).length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Hidden Sections</p>
+                        <div className="flex flex-wrap gap-2">
+                            {allSectionIds.filter(id => !formData.sectionOrder.includes(id)).map(sectionId => (
+                                <button
+                                    key={sectionId}
+                                    type="button"
+                                    onClick={() => toggleSectionInOrder(sectionId)}
+                                    className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-600 dark:hover:text-primary-300 transition-colors flex items-center gap-1"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Show {getSectionDisplayName(sectionId)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Publishing */}
