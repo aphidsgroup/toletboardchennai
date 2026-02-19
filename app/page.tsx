@@ -69,6 +69,21 @@ export default async function HomePage() {
                     </p>
                 </header>
 
+                {/* Search */}
+                <div className="mb-6">
+                    <Link
+                        href="/list"
+                        className="block bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-4"
+                    >
+                        <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <span>Search by area or keyword...</span>
+                        </div>
+                    </Link>
+                </div>
+
                 {/* Primary CTAs */}
                 <div className="space-y-4 mb-8">
                     <Link
@@ -79,7 +94,7 @@ export default async function HomePage() {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                             </svg>
-                            <span>View Rent Properties</span>
+                            <span>View Rental Properties</span>
                         </div>
                     </Link>
 
@@ -193,20 +208,7 @@ export default async function HomePage() {
                     </div>
                 </div>
 
-                {/* Search */}
-                <div className="mb-8">
-                    <Link
-                        href="/list"
-                        className="block bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-4"
-                    >
-                        <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <span>Search by area or keyword...</span>
-                        </div>
-                    </Link>
-                </div>
+
 
                 {/* Footer */}
                 <footer className="text-center text-sm text-gray-500 dark:text-gray-400 mt-12">
