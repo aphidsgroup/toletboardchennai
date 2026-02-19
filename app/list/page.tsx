@@ -8,6 +8,7 @@ interface ListPageProps {
     searchParams: Promise<{
         deal?: DealType;
         use?: UsageType;
+        subtype?: string;
         area?: string;
         minPrice?: string;
         maxPrice?: string;
@@ -19,6 +20,7 @@ interface ListPageProps {
 async function getProperties(filters: {
     deal?: DealType;
     use?: UsageType;
+    subtype?: string;
     area?: string;
     minPrice?: number;
     maxPrice?: number;
@@ -31,6 +33,7 @@ async function getProperties(filters: {
 
     if (filters.deal) where.dealType = filters.deal;
     if (filters.use) where.usageType = filters.use;
+    if (filters.subtype) where.propertySubtype = filters.subtype;
     if (filters.area) where.areaName = filters.area;
     if (filters.minPrice) where.priceInr = { ...where.priceInr, gte: filters.minPrice };
     if (filters.maxPrice) where.priceInr = { ...where.priceInr, lte: filters.maxPrice };
@@ -58,6 +61,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
     const filters = {
         deal: params.deal,
         use: params.use,
+        subtype: params.subtype,
         area: params.area,
         minPrice: params.minPrice ? parseInt(params.minPrice) : undefined,
         maxPrice: params.maxPrice ? parseInt(params.maxPrice) : undefined,

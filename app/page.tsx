@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
+import PropertySlider from '@/components/PropertySlider';
 
 async function getSiteSettings() {
     const settings = await prisma.siteSettings.findUnique({
@@ -8,25 +9,43 @@ async function getSiteSettings() {
     return settings;
 }
 
-async function getFeaturedProperty() {
-    const property = await prisma.property.findFirst({
-        where: {
-            isPublished: true,
-            isFeatured: true,
-        },
-        orderBy: {
-            createdAt: 'desc',
+async function getPublishedProperties() {
+    return await prisma.property.findMany({
+        where: { isPublished: true },
+        orderBy: { createdAt: 'desc' },
+        select: {
+            id: true,
+            slug: true,
+            title: true,
+            dealType: true,
+            usageType: true,
+            areaName: true,
+            city: true,
+            priceInr: true,
+            sizeSqft: true,
+            bedrooms: true,
+            bathrooms: true,
+            images: true,
         },
     });
-    return property;
 }
 
 export default async function HomePage() {
     const settings = await getSiteSettings();
-    const featuredProperty = await getFeaturedProperty();
+    const properties = await getPublishedProperties();
 
     const whatsappUrl = `https://wa.me/${settings?.whatsappNumber?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hi, I want to know more about properties - Tolet Board Chennai')}`;
     const callUrl = `tel:${settings?.phoneNumber}`;
+
+    // Category config
+    const categories = [
+        { label: 'Apartment', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', href: '/list?subtype=Apartment' },
+        { label: 'Villa / House', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', href: '/list?subtype=Villa' },
+        { label: 'Office Space', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', href: '/list?subtype=Office' },
+        { label: 'Shop / Retail', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', href: '/list?subtype=Shop' },
+        { label: 'Warehouse', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z', href: '/list?subtype=Warehouse' },
+        { label: 'PG / Co-living', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', href: '/list?subtype=PG' },
+    ];
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
@@ -103,58 +122,48 @@ export default async function HomePage() {
                     </div>
                 </div>
 
-                {/* Featured Property */}
-                {featuredProperty && (
+                {/* Properties Slider */}
+                {properties.length > 0 && (
                     <div className="mb-8">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                            Featured Property
-                        </h2>
-                        <Link
-                            href={`/p/${featuredProperty.slug}`}
-                            className="block bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-                        >
-                            <div className="p-6">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                                            {featuredProperty.title}
-                                        </h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            {featuredProperty.areaName}, {featuredProperty.city}
-                                        </p>
-                                    </div>
-                                    <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 text-xs font-semibold rounded-full">
-                                        {featuredProperty.dealType.toUpperCase()}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
-                                    <span className="font-semibold text-primary-600 dark:text-primary-400 text-lg">
-                                        ₹{featuredProperty.priceInr.toLocaleString()}/mo
-                                    </span>
-                                    <span>•</span>
-                                    <span>{featuredProperty.sizeSqft} sq ft</span>
-                                    {featuredProperty.bedrooms && (
-                                        <>
-                                            <span>•</span>
-                                            <span>{featuredProperty.bedrooms} BHK</span>
-                                        </>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold py-3 px-4 rounded-xl">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    <span>View 360° Tour</span>
-                                </div>
-                            </div>
-                        </Link>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                Latest Properties
+                            </h2>
+                            <Link
+                                href="/list"
+                                className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                            >
+                                View All →
+                            </Link>
+                        </div>
+                        <PropertySlider properties={properties} />
                     </div>
                 )}
 
-                {/* Property Type Chips */}
+                {/* Browse by Category */}
+                <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        Browse by Category
+                    </h2>
+                    <div className="grid grid-cols-3 gap-3">
+                        {categories.map((cat) => (
+                            <Link
+                                key={cat.label}
+                                href={cat.href}
+                                className="block bg-white dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-gray-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-4 text-center group"
+                            >
+                                <svg className="w-7 h-7 mx-auto mb-2 text-primary-500 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={cat.icon} />
+                                </svg>
+                                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
+                                    {cat.label}
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Browse by Type */}
                 <div className="mb-8">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                         Browse by Type

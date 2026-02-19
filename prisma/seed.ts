@@ -675,11 +675,22 @@ async function main() {
         },
     ];
 
-    for (const property of properties) {
+    for (let i = 0; i < properties.length; i++) {
+        const property = properties[i];
+        // Add placeholder thumbnail images for each property
+        const imageId1 = 100 + i * 3;
+        const imageId2 = 101 + i * 3;
+        const propertyWithImages = {
+            ...property,
+            images: JSON.stringify([
+                `https://picsum.photos/seed/prop${imageId1}/800/600`,
+                `https://picsum.photos/seed/prop${imageId2}/800/600`,
+            ]),
+        };
         await prisma.property.upsert({
             where: { slug: property.slug },
-            update: property,
-            create: property,
+            update: propertyWithImages,
+            create: propertyWithImages,
         });
     }
 
