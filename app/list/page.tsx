@@ -12,6 +12,7 @@ interface ListPageProps {
         subtype?: string;
         area?: string;
         bhk?: string;
+        q?: string;
         minPrice?: string;
         maxPrice?: string;
         minSize?: string;
@@ -48,6 +49,7 @@ async function getProperties(filters: {
     subtype?: string;
     area?: string;
     bhk?: number;
+    q?: string;
     minPrice?: number;
     maxPrice?: number;
     minSize?: number;
@@ -61,6 +63,14 @@ async function getProperties(filters: {
     if (filters.use) where.usageType = filters.use;
     if (filters.subtype) where.propertySubtype = filters.subtype;
     if (filters.area) where.areaName = filters.area;
+    if (filters.q) {
+        where.OR = [
+            { title: { contains: filters.q, mode: 'insensitive' } },
+            { areaName: { contains: filters.q, mode: 'insensitive' } },
+            { city: { contains: filters.q, mode: 'insensitive' } },
+            { propertySubtype: { contains: filters.q, mode: 'insensitive' } },
+        ];
+    }
     if (filters.bhk) {
         if (filters.bhk >= 4) {
             where.bedrooms = { gte: 4 };
@@ -97,6 +107,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
         subtype: params.subtype,
         area: params.area,
         bhk: params.bhk ? parseInt(params.bhk) : undefined,
+        q: params.q,
         minPrice: params.minPrice ? parseInt(params.minPrice) : undefined,
         maxPrice: params.maxPrice ? parseInt(params.maxPrice) : undefined,
         minSize: params.minSize ? parseInt(params.minSize) : undefined,

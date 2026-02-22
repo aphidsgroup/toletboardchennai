@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import PropertySlider from '@/components/PropertySlider';
+import SearchBar from '@/components/SearchBar';
 
 export const metadata: Metadata = {
     title: 'Tolet Board Chennai - 360° Virtual Property Tours | Rent & Lease Properties',
@@ -96,17 +97,7 @@ export default async function HomePage() {
 
                     {/* Search */}
                     <div className="mb-6">
-                        <Link
-                            href="/list"
-                            className="block bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-4"
-                        >
-                            <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <span>Search by area or keyword...</span>
-                            </div>
-                        </Link>
+                        <SearchBar />
                     </div>
 
                     {/* Primary CTAs */}
