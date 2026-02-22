@@ -11,6 +11,7 @@ interface ListPageProps {
         use?: UsageType;
         subtype?: string;
         area?: string;
+        areas?: string;
         bhk?: string;
         q?: string;
         minPrice?: string;
@@ -47,7 +48,7 @@ async function getProperties(filters: {
     deal?: DealType;
     use?: UsageType;
     subtype?: string;
-    area?: string;
+    areas?: string[];
     bhk?: number;
     q?: string;
     minPrice?: number;
@@ -62,7 +63,9 @@ async function getProperties(filters: {
     if (filters.deal) where.dealType = filters.deal;
     if (filters.use) where.usageType = filters.use;
     if (filters.subtype) where.propertySubtype = filters.subtype;
-    if (filters.area) where.areaName = filters.area;
+    if (filters.areas && filters.areas.length > 0) {
+        where.areaName = { in: filters.areas };
+    }
     if (filters.q) {
         where.OR = [
             { title: { contains: filters.q, mode: 'insensitive' } },
@@ -101,11 +104,14 @@ async function getUniqueAreas() {
 export default async function ListPage({ searchParams }: ListPageProps) {
     const params = await searchParams;
 
+    const areasParam = params.areas?.split(',').filter(Boolean) ||
+        (params.area ? [params.area] : undefined);
+
     const filters = {
         deal: params.deal,
         use: params.use,
         subtype: params.subtype,
-        area: params.area,
+        areas: areasParam,
         bhk: params.bhk ? parseInt(params.bhk) : undefined,
         q: params.q,
         minPrice: params.minPrice ? parseInt(params.minPrice) : undefined,
