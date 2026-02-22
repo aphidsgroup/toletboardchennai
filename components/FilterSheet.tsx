@@ -180,7 +180,23 @@ export default function FilterSheet({ areas }: FilterSheetProps) {
                         {/* Scrollable Content */}
                         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
 
-                            {/* Areas — multi-select (up to 5) */}
+                            {/* Property Type dropdown — FIRST */}
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
+                                    Property Type
+                                </label>
+                                <select
+                                    value={subtype}
+                                    onChange={(e) => setSubtype(e.target.value)}
+                                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer"
+                                >
+                                    {PROPERTY_TYPES.map((t) => (
+                                        <option key={t.value} value={t.value}>{t.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Areas — multi-select (up to 5) — SECOND */}
                             <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                     <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -239,22 +255,6 @@ export default function FilterSheet({ areas }: FilterSheetProps) {
                                         <p className="px-3 py-2 text-xs text-gray-400">No areas found</p>
                                     )}
                                 </div>
-                            </div>
-
-                            {/* Property Type dropdown */}
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
-                                    Property Type
-                                </label>
-                                <select
-                                    value={subtype}
-                                    onChange={(e) => setSubtype(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer"
-                                >
-                                    {PROPERTY_TYPES.map((t) => (
-                                        <option key={t.value} value={t.value}>{t.label}</option>
-                                    ))}
-                                </select>
                             </div>
 
                             {/* Row 2: BHK pills */}

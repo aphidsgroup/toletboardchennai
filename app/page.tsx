@@ -41,6 +41,9 @@ export default async function HomePage() {
     const settings = await getSiteSettings();
     const properties = await getPublishedProperties();
 
+    // Unique area names from published properties
+    const availableAreas = [...new Set(properties.map(p => p.areaName).filter(Boolean))] as string[];
+
     const whatsappUrl = `https://wa.me/${settings?.whatsappNumber?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hi, I want to know more about properties - Tolet Board Chennai')}`;
     const callUrl = `tel:${settings?.phoneNumber}`;
 
@@ -103,7 +106,7 @@ export default async function HomePage() {
 
                     {/* 1. Search */}
                     <div className="mb-8">
-                        <SearchBar />
+                        <SearchBar availableAreas={availableAreas} />
                     </div>
 
                     {/* 2. Browse by Category */}
@@ -182,7 +185,7 @@ export default async function HomePage() {
                                 href={whatsappUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center"
+                                className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center"
                             >
                                 <div className="flex items-center justify-center gap-2">
                                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -194,7 +197,7 @@ export default async function HomePage() {
 
                             <a
                                 href={callUrl}
-                                className="block w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center"
+                                className="block w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center"
                             >
                                 <div className="flex items-center justify-center gap-2">
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
