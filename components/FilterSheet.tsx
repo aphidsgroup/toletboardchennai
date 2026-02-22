@@ -1,259 +1,316 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface FilterSheetProps {
     areas: string[];
-    amenitiesVocab: string[];
 }
 
-export default function FilterSheet({ areas, amenitiesVocab }: FilterSheetProps) {
+// Budget presets in INR
+const BUDGET_MIN = 0;
+const BUDGET_MAX = 200000;
+const BUDGET_STEP = 5000;
+
+// Size presets in sqft
+const SIZE_MIN = 0;
+const SIZE_MAX = 5000;
+const SIZE_STEP = 100;
+
+const BHK_OPTIONS = [
+    { label: 'Any', value: '' },
+    { label: '1 BHK', value: '1' },
+    { label: '2 BHK', value: '2' },
+    { label: '3 BHK', value: '3' },
+    { label: '4+ BHK', value: '4' },
+];
+
+const PROPERTY_TYPES = [
+    { label: 'All Types', value: '' },
+    { label: 'Apartment', value: 'Apartment' },
+    { label: 'Villa / House', value: 'Villa' },
+    { label: 'Office', value: 'Office' },
+    { label: 'Shop / Retail', value: 'Shop' },
+    { label: 'Warehouse', value: 'Warehouse' },
+    { label: 'PG / Co-living', value: 'PG' },
+];
+
+function formatBudget(value: number): string {
+    if (value >= 100000) return `₹${(value / 100000).toFixed(value % 100000 === 0 ? 0 : 1)}L`;
+    if (value >= 1000) return `₹${(value / 1000).toFixed(0)}K`;
+    return `₹${value}`;
+}
+
+export default function FilterSheet({ areas }: FilterSheetProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
 
-    // Get current filter values from URL
+    // State from URL
     const [area, setArea] = useState(searchParams.get('area') || '');
-    const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
-    const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
-    const [minSize, setMinSize] = useState(searchParams.get('minSize') || '');
-    const [maxSize, setMaxSize] = useState(searchParams.get('maxSize') || '');
-    const [selectedAmenities, setSelectedAmenities] = useState<string[]>(
-        searchParams.get('amenities')?.split(',').filter(Boolean) || []
-    );
+    const [bhk, setBhk] = useState(searchParams.get('bhk') || '');
+    const [subtype, setSubtype] = useState(searchParams.get('subtype') || '');
+    const [minPrice, setMinPrice] = useState(parseInt(searchParams.get('minPrice') || '0'));
+    const [maxPrice, setMaxPrice] = useState(parseInt(searchParams.get('maxPrice') || String(BUDGET_MAX)));
+    const [minSize, setMinSize] = useState(parseInt(searchParams.get('minSize') || '0'));
+    const [maxSize, setMaxSize] = useState(parseInt(searchParams.get('maxSize') || String(SIZE_MAX)));
 
-    const handleApply = () => {
-        const params = new URLSearchParams(searchParams.toString());
+    const handleApply = useCallback(() => {
+        const params = new URLSearchParams();
 
-        // Preserve deal and use params
+        // Preserve deal and use
+        const deal = searchParams.get('deal');
+        const use = searchParams.get('use');
+        if (deal) params.set('deal', deal);
+        if (use) params.set('use', use);
+
         if (area) params.set('area', area);
-        else params.delete('area');
-
-        if (minPrice) params.set('minPrice', minPrice);
-        else params.delete('minPrice');
-
-        if (maxPrice) params.set('maxPrice', maxPrice);
-        else params.delete('maxPrice');
-
-        if (minSize) params.set('minSize', minSize);
-        else params.delete('minSize');
-
-        if (maxSize) params.set('maxSize', maxSize);
-        else params.delete('maxSize');
-
-        if (selectedAmenities.length > 0) params.set('amenities', selectedAmenities.join(','));
-        else params.delete('amenities');
+        if (bhk) params.set('bhk', bhk);
+        if (subtype) params.set('subtype', subtype);
+        if (minPrice > BUDGET_MIN) params.set('minPrice', String(minPrice));
+        if (maxPrice < BUDGET_MAX) params.set('maxPrice', String(maxPrice));
+        if (minSize > SIZE_MIN) params.set('minSize', String(minSize));
+        if (maxSize < SIZE_MAX) params.set('maxSize', String(maxSize));
 
         router.push(`/list?${params.toString()}`);
         setIsOpen(false);
-    };
+    }, [area, bhk, subtype, minPrice, maxPrice, minSize, maxSize, searchParams, router]);
 
-    const handleClear = () => {
-        const params = new URLSearchParams(searchParams.toString());
-
-        // Keep only deal and use params
-        const deal = params.get('deal');
-        const use = params.get('use');
-
-        const newParams = new URLSearchParams();
-        if (deal) newParams.set('deal', deal);
-        if (use) newParams.set('use', use);
+    const handleClear = useCallback(() => {
+        const params = new URLSearchParams();
+        const deal = searchParams.get('deal');
+        const use = searchParams.get('use');
+        if (deal) params.set('deal', deal);
+        if (use) params.set('use', use);
 
         setArea('');
-        setMinPrice('');
-        setMaxPrice('');
-        setMinSize('');
-        setMaxSize('');
-        setSelectedAmenities([]);
+        setBhk('');
+        setSubtype('');
+        setMinPrice(BUDGET_MIN);
+        setMaxPrice(BUDGET_MAX);
+        setMinSize(SIZE_MIN);
+        setMaxSize(SIZE_MAX);
 
-        router.push(`/list?${newParams.toString()}`);
+        router.push(`/list?${params.toString()}`);
         setIsOpen(false);
-    };
+    }, [searchParams, router]);
 
-    const toggleAmenity = (amenity: string) => {
-        setSelectedAmenities(prev =>
-            prev.includes(amenity)
-                ? prev.filter(a => a !== amenity)
-                : [...prev, amenity]
-        );
-    };
-
-    const activeFiltersCount = [area, minPrice, maxPrice, minSize, maxSize, ...selectedAmenities].filter(Boolean).length;
+    // Count active filters
+    const activeCount = [
+        area,
+        bhk,
+        subtype,
+        minPrice > BUDGET_MIN ? 'y' : '',
+        maxPrice < BUDGET_MAX ? 'y' : '',
+        minSize > SIZE_MIN ? 'y' : '',
+        maxSize < SIZE_MAX ? 'y' : '',
+    ].filter(Boolean).length;
 
     return (
         <>
-            {/* Filter Button */}
+            {/* Floating Filter Button */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold py-3.5 px-7 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2.5"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
                 <span>Filters</span>
-                {activeFiltersCount > 0 && (
-                    <span className="bg-white text-primary-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                        {activeFiltersCount}
+                {activeCount > 0 && (
+                    <span className="bg-white text-primary-600 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                        {activeCount}
                     </span>
                 )}
             </button>
 
-            {/* Bottom Sheet */}
+            {/* Bottom Sheet Overlay */}
             {isOpen && (
                 <>
-                    {/* Backdrop */}
                     <div
                         className="fixed inset-0 bg-black/50 z-50 animate-fade-in"
                         onClick={() => setIsOpen(false)}
                     />
 
-                    {/* Sheet */}
-                    <div className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
-                        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Filters</h2>
+                    <div className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl max-h-[80vh] flex flex-col animate-slide-up">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
                             <button
                                 onClick={() => setIsOpen(false)}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                             >
-                                <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
 
-                        <div className="p-6 space-y-6">
-                            {/* Area */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                    Area
-                                </label>
-                                <select
-                                    value={area}
-                                    onChange={(e) => setArea(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                >
-                                    <option value="">All Areas</option>
-                                    {areas.map((a) => (
-                                        <option key={a} value={a}>{a}</option>
-                                    ))}
-                                </select>
-                            </div>
+                        {/* Scrollable Content */}
+                        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
 
-                            {/* Budget */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                    Budget (₹/month)
-                                </label>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <input
-                                        type="number"
-                                        placeholder="Min"
-                                        value={minPrice}
-                                        onChange={(e) => setMinPrice(e.target.value)}
-                                        className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Max"
-                                        value={maxPrice}
-                                        onChange={(e) => setMaxPrice(e.target.value)}
-                                        className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Size */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                    Size (sq ft)
-                                </label>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <input
-                                        type="number"
-                                        placeholder="Min"
-                                        value={minSize}
-                                        onChange={(e) => setMinSize(e.target.value)}
-                                        className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Max"
-                                        value={maxSize}
-                                        onChange={(e) => setMaxSize(e.target.value)}
-                                        className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Amenities */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                    Amenities
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {amenitiesVocab
-                                        .filter((amenity) => {
-                                            const usageType = searchParams.get('use') || 'residential';
-
-                                            // Residential-only amenities
-                                            const residentialAmenities = [
-                                                'Swimming Pool', 'Play Area', 'Garden', 'Club House',
-                                                'Children\'s Park', 'Jogging Track', 'Indoor Games',
-                                                'Community Hall', 'Meditation Area', 'Senior Citizen Area'
-                                            ];
-
-                                            // Commercial-only amenities
-                                            const commercialAmenities = [
-                                                'Conference Room', 'Reception Area', 'Cafeteria',
-                                                'Server Room', 'Meeting Rooms', 'Pantry',
-                                                'Workstations', 'Cabin Space', 'Washrooms per Floor',
-                                                'Visitor Parking', 'Loading Bay', 'Storage Area'
-                                            ];
-
-                                            // Common amenities for both
-                                            const commonAmenities = [
-                                                'Lift', 'Parking', 'Security', 'Power Backup',
-                                                'Water Supply', 'CCTV', 'Intercom', '24/7 Security',
-                                                'Fire Safety', 'Maintenance Staff', 'Covered Parking',
-                                                'Visitor Parking', 'Rainwater Harvesting', 'Waste Management'
-                                            ];
-
-                                            if (usageType === 'residential') {
-                                                return !commercialAmenities.includes(amenity);
-                                            } else {
-                                                return !residentialAmenities.includes(amenity);
-                                            }
-                                        })
-                                        .map((amenity) => (
-                                            <button
-                                                key={amenity}
-                                                onClick={() => toggleAmenity(amenity)}
-                                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${selectedAmenities.includes(amenity)
-                                                    ? 'bg-primary-500 text-white'
-                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                                    }`}
-                                            >
-                                                {amenity}
-                                            </button>
+                            {/* Row 1: Area + Property Type — side by side dropdowns */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
+                                        Area
+                                    </label>
+                                    <select
+                                        value={area}
+                                        onChange={(e) => setArea(e.target.value)}
+                                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer"
+                                    >
+                                        <option value="">All Areas</option>
+                                        {areas.map((a) => (
+                                            <option key={a} value={a}>{a}</option>
                                         ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
+                                        Type
+                                    </label>
+                                    <select
+                                        value={subtype}
+                                        onChange={(e) => setSubtype(e.target.value)}
+                                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer"
+                                    >
+                                        {PROPERTY_TYPES.map((t) => (
+                                            <option key={t.value} value={t.value}>{t.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Row 2: BHK pills */}
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                                    BHK
+                                </label>
+                                <div className="flex gap-2">
+                                    {BHK_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => setBhk(bhk === opt.value ? '' : opt.value)}
+                                            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${bhk === opt.value
+                                                    ? 'bg-primary-500 text-white shadow-sm'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Row 3: Budget Range Slider */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Budget /month
+                                    </label>
+                                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                                        {formatBudget(minPrice)} – {maxPrice >= BUDGET_MAX ? '₹2L+' : formatBudget(maxPrice)}
+                                    </span>
+                                </div>
+                                <div className="relative pt-1">
+                                    <div className="range-slider-track">
+                                        <div
+                                            className="range-slider-fill"
+                                            style={{
+                                                left: `${(minPrice / BUDGET_MAX) * 100}%`,
+                                                width: `${((maxPrice - minPrice) / BUDGET_MAX) * 100}%`,
+                                            }}
+                                        />
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min={BUDGET_MIN}
+                                        max={BUDGET_MAX}
+                                        step={BUDGET_STEP}
+                                        value={minPrice}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            if (val < maxPrice) setMinPrice(val);
+                                        }}
+                                        className="range-slider-thumb"
+                                    />
+                                    <input
+                                        type="range"
+                                        min={BUDGET_MIN}
+                                        max={BUDGET_MAX}
+                                        step={BUDGET_STEP}
+                                        value={maxPrice}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            if (val > minPrice) setMaxPrice(val);
+                                        }}
+                                        className="range-slider-thumb"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Row 4: Size Range Slider */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Size
+                                    </label>
+                                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                                        {minSize} – {maxSize >= SIZE_MAX ? '5000+' : maxSize} sq ft
+                                    </span>
+                                </div>
+                                <div className="relative pt-1">
+                                    <div className="range-slider-track">
+                                        <div
+                                            className="range-slider-fill"
+                                            style={{
+                                                left: `${(minSize / SIZE_MAX) * 100}%`,
+                                                width: `${((maxSize - minSize) / SIZE_MAX) * 100}%`,
+                                            }}
+                                        />
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min={SIZE_MIN}
+                                        max={SIZE_MAX}
+                                        step={SIZE_STEP}
+                                        value={minSize}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            if (val < maxSize) setMinSize(val);
+                                        }}
+                                        className="range-slider-thumb"
+                                    />
+                                    <input
+                                        type="range"
+                                        min={SIZE_MIN}
+                                        max={SIZE_MAX}
+                                        step={SIZE_STEP}
+                                        value={maxSize}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            if (val > minSize) setMaxSize(val);
+                                        }}
+                                        className="range-slider-thumb"
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex gap-3">
+                        {/* Action Buttons */}
+                        <div className="border-t border-gray-100 dark:border-gray-700 px-6 py-4 flex gap-3">
                             <button
                                 onClick={handleClear}
-                                className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                className="flex-1 px-5 py-3 border-2 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                             >
-                                Clear
+                                Clear All
                             </button>
                             <button
                                 onClick={handleApply}
-                                className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-300"
+                                className="flex-1 px-5 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl shadow-md transition-all duration-300"
                             >
-                                Apply
+                                Show Results
                             </button>
                         </div>
                     </div>
