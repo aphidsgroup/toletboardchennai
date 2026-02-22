@@ -20,6 +20,13 @@ const nextConfig = {
             },
         ],
     },
+    experimental: {
+        // Cache pages client-side so back/forward navigation is instant
+        staleTimes: {
+            dynamic: 30,  // Cache dynamic pages for 30 seconds
+            static: 180,  // Cache static pages for 3 minutes
+        },
+    },
 };
 
 module.exports = withPWA(nextConfig);

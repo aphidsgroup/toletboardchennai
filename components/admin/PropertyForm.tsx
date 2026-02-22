@@ -24,6 +24,7 @@ import {
     DEFAULT_SECTION_NAMES,
     type SectionNames,
 } from '@/lib/utils';
+import { uploadImageDirect } from '@/lib/supabase-browser';
 
 interface PropertyFormProps {
     property?: Property;
@@ -324,30 +325,24 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
             return;
         }
 
-        const formDataToUpload = new FormData();
+        // Upload each file directly to Supabase Storage (bypasses Vercel 4.5MB limit)
+        const uploadedPaths: string[] = [];
         for (let i = 0; i < files.length; i++) {
-            formDataToUpload.append('images', files[i]);
+            try {
+                const url = await uploadImageDirect(files[i]);
+                uploadedPaths.push(url);
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert(error instanceof Error ? error.message : `Failed to upload ${files[i].name}`);
+                break;
+            }
         }
 
-        try {
-            const res = await fetch('/api/admin/upload', {
-                method: 'POST',
-                body: formDataToUpload,
-            });
-
-            if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error.error || 'Upload failed');
-            }
-
-            const { paths } = await res.json();
+        if (uploadedPaths.length > 0) {
             setFormData(prev => ({
                 ...prev,
-                images: [...prev.images, ...paths]
+                images: [...prev.images, ...uploadedPaths]
             }));
-        } catch (error) {
-            console.error('Upload error:', error);
-            alert(error instanceof Error ? error.message : 'Failed to upload images');
         }
 
         // Reset input
