@@ -68,8 +68,24 @@ export default function PropertySlider({ properties }: PropertySliderProps) {
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {properties.map((property) => {
-                    const images = property.images ? JSON.parse(property.images) : [];
-                    const mainImage = images.length > 0 ? images[0] : null;
+                    let mainImage: string | null = null;
+                    try {
+                        if (property.images) {
+                            let parsed = JSON.parse(property.images);
+                            // Handle double-stringified JSON
+                            if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                mainImage = parsed[0];
+                            } else if (typeof parsed === 'string') {
+                                mainImage = parsed;
+                            }
+                        }
+                    } catch {
+                        // If JSON.parse fails, treat the string as a direct URL
+                        if (property.images && property.images.startsWith('http')) {
+                            mainImage = property.images;
+                        }
+                    }
 
                     return (
                         <Link
