@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { CHENNAI_AREAS } from '@/lib/chennai-areas';
 
 interface FilterSheetProps {
-    areas: string[];
+    areas: string[]; // DB areas (properties that exist)
 }
 
 // Budget presets in INR
@@ -45,6 +46,13 @@ export default function FilterSheet({ areas }: FilterSheetProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
+
+    // Merge DB areas with master list — DB areas first, then rest
+    const allAreas = useMemo(() => {
+        const dbSet = new Set(areas);
+        const rest = CHENNAI_AREAS.filter(a => !dbSet.has(a));
+        return [...areas, ...rest];
+    }, [areas]);
 
     // State from URL
     const [area, setArea] = useState(searchParams.get('area') || '');
@@ -161,7 +169,7 @@ export default function FilterSheet({ areas }: FilterSheetProps) {
                                         className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer"
                                     >
                                         <option value="">All Areas</option>
-                                        {areas.map((a) => (
+                                        {allAreas.map((a) => (
                                             <option key={a} value={a}>{a}</option>
                                         ))}
                                     </select>
@@ -193,8 +201,8 @@ export default function FilterSheet({ areas }: FilterSheetProps) {
                                             key={opt.value}
                                             onClick={() => setBhk(bhk === opt.value ? '' : opt.value)}
                                             className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${bhk === opt.value
-                                                    ? 'bg-primary-500 text-white shadow-sm'
-                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                ? 'bg-primary-500 text-white shadow-sm'
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                                                 }`}
                                         >
                                             {opt.label}
