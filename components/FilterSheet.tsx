@@ -148,7 +148,7 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
             {/* Floating Filter Button */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold py-3.5 px-7 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2.5"
+                className="fixed bottom-6 right-6 z-40 btn-premium font-semibold py-3.5 px-7 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2.5"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -274,7 +274,7 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
                                             key={opt.value}
                                             onClick={() => setBhk(bhk === opt.value ? '' : opt.value)}
                                             className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${bhk === opt.value
-                                                ? 'bg-primary-500 text-white shadow-sm'
+                                                ? 'bg-gray-900 text-gold-gradient shadow-sm'
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                                                 }`}
                                         >
@@ -389,7 +389,7 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
                             </button>
                             <button
                                 onClick={handleApply}
-                                className="flex-1 px-5 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl shadow-md transition-all duration-300"
+                                className="flex-1 px-5 py-3 btn-premium font-semibold rounded-xl shadow-md transition-all duration-300"
                             >
                                 Show Results
                             </button>

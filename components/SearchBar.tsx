@@ -134,7 +134,7 @@ export default function SearchBar({ availableAreas = [] }: SearchBarProps) {
                 />
                 <button
                     onClick={() => handleSearch()}
-                    className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white p-2.5 rounded-lg transition-all duration-200 flex-shrink-0"
+                    className="btn-premium p-2.5 rounded-lg transition-all duration-200 flex-shrink-0"
                     aria-label="Search"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

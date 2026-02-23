@@ -72,6 +72,72 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Premium gold gradient text */
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #d4a017 0%, #f5d060 40%, #d4a017 60%, #b8860b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Premium button: black bg + gold gradient text → hover: gold gradient bg + black text */
+  .btn-premium {
+    background: #0a0a0a;
+    color: transparent;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .btn-premium>* {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-premium span,
+  .btn-premium .btn-premium-text {
+    background: linear-gradient(135deg, #d4a017 0%, #f5d060 40%, #d4a017 60%, #b8860b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+  }
+
+  .btn-premium svg {
+    color: #d4a017;
+    transition: color 0.3s ease;
+  }
+
+  .btn-premium::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #d4a017 0%, #f5d060 40%, #d4a017 60%, #b8860b 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+  }
+
+  .btn-premium:hover {
+    box-shadow: 0 4px 20px rgba(212, 160, 23, 0.3);
+  }
+
+  .btn-premium:hover::before {
+    opacity: 1;
+  }
+
+  .btn-premium:hover span,
+  .btn-premium:hover .btn-premium-text {
+    background: #0a0a0a;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .btn-premium:hover svg {
+    color: #0a0a0a;
+  }
 }
 
 /* ── Dual-thumb range slider ── */

@@ -232,7 +232,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
                         </p>
                         <Link
                             href="/list"
-                            className="inline-block px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+                            className="inline-block px-6 py-3 btn-premium font-semibold rounded-xl transition-colors"
                         >
                             Clear All Filters
                         </Link>
