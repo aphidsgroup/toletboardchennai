@@ -92,13 +92,29 @@ async function getProperties(filters: {
     });
 }
 
-async function getUniqueAreas() {
+async function getAreasBySubtype() {
     const properties = await prisma.property.findMany({
         where: { isPublished: true },
-        select: { areaName: true },
-        distinct: ['areaName'],
+        select: { areaName: true, propertySubtype: true },
     });
-    return properties.map(p => p.areaName).sort();
+    // Build map: subtype -> areas[]  and '' -> all areas
+    const map: Record<string, string[]> = { '': [] };
+    const allAreas = new Set<string>();
+    const subtypeAreas: Record<string, Set<string>> = {};
+    for (const p of properties) {
+        if (p.areaName) {
+            allAreas.add(p.areaName);
+            if (p.propertySubtype) {
+                if (!subtypeAreas[p.propertySubtype]) subtypeAreas[p.propertySubtype] = new Set();
+                subtypeAreas[p.propertySubtype].add(p.areaName);
+            }
+        }
+    }
+    map[''] = [...allAreas].sort();
+    for (const [st, areaSet] of Object.entries(subtypeAreas)) {
+        map[st] = [...areaSet].sort();
+    }
+    return map;
 }
 
 export default async function ListPage({ searchParams }: ListPageProps) {
@@ -121,7 +137,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
     };
 
     const properties = await getProperties(filters);
-    const areas = await getUniqueAreas();
+    const areasBySubtype = await getAreasBySubtype();
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -225,7 +241,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
             </div>
 
             {/* Filter Sheet */}
-            <FilterSheet areas={areas} />
+            <FilterSheet areasBySubtype={areasBySubtype} />
         </main>
     );
 }

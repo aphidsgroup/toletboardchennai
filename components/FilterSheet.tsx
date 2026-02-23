@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { CHENNAI_AREAS } from '@/lib/chennai-areas';
 
 interface FilterSheetProps {
-    areas: string[]; // DB areas (properties that exist)
+    areasBySubtype: Record<string, string[]>; // subtype -> available areas
 }
 
 // Budget presets in INR
@@ -42,20 +42,20 @@ function formatBudget(value: number): string {
     return `₹${value}`;
 }
 
-export default function FilterSheet({ areas }: FilterSheetProps) {
+export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
 
-    // Merge DB areas with master list — DB areas first, then rest
-    const allAreas = useMemo(() => {
-        const dbSet = new Set(areas);
-        const rest = CHENNAI_AREAS.filter(a => !dbSet.has(a));
-        return [...areas, ...rest];
-    }, [areas]);
+    // All DB areas (when no subtype selected)
+    const allDbAreas = useMemo(() => areasBySubtype[''] || [], [areasBySubtype]);
 
-    // Set for O(1) "Available" lookup
-    const dbAreaSet = useMemo(() => new Set(areas), [areas]);
+    // Merge all DB areas with master list — DB areas first, then rest
+    const allAreas = useMemo(() => {
+        const dbSet = new Set(allDbAreas);
+        const rest = CHENNAI_AREAS.filter(a => !dbSet.has(a));
+        return [...allDbAreas, ...rest];
+    }, [allDbAreas]);
 
     // State from URL
     const [selectedAreas, setSelectedAreas] = useState<string[]>(
@@ -69,6 +69,12 @@ export default function FilterSheet({ areas }: FilterSheetProps) {
     const [maxPrice, setMaxPrice] = useState(parseInt(searchParams.get('maxPrice') || String(BUDGET_MAX)));
     const [minSize, setMinSize] = useState(parseInt(searchParams.get('minSize') || '0'));
     const [maxSize, setMaxSize] = useState(parseInt(searchParams.get('maxSize') || String(SIZE_MAX)));
+
+    // Dynamic "Available" lookup: depends on selected property type
+    const dbAreaSet = useMemo(() => {
+        const areasForType = subtype ? (areasBySubtype[subtype] || []) : allDbAreas;
+        return new Set(areasForType);
+    }, [subtype, areasBySubtype, allDbAreas]);
 
     const toggleArea = useCallback((a: string) => {
         setSelectedAreas(prev => {
