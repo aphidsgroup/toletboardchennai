@@ -83,8 +83,8 @@ body {
 
   /* Premium button: black bg + gold gradient text → hover: gold gradient bg + black text */
   .btn-premium {
-    background: #0a0a0a;
-    color: transparent;
+    background-color: #0a0a0a;
+    color: #d4a017;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -95,8 +95,8 @@ body {
     z-index: 1;
   }
 
-  .btn-premium span,
-  .btn-premium .btn-premium-text {
+  /* Gold gradient text on spans inside */
+  .btn-premium span {
     background: linear-gradient(135deg, #d4a017 0%, #f5d060 40%, #d4a017 60%, #b8860b 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -109,6 +109,7 @@ body {
     transition: color 0.3s ease;
   }
 
+  /* Gold gradient overlay for hover */
   .btn-premium::before {
     content: '';
     position: absolute;
@@ -120,6 +121,7 @@ body {
   }
 
   .btn-premium:hover {
+    color: #0a0a0a;
     box-shadow: 0 4px 20px rgba(212, 160, 23, 0.3);
   }
 
@@ -127,12 +129,11 @@ body {
     opacity: 1;
   }
 
-  .btn-premium:hover span,
-  .btn-premium:hover .btn-premium-text {
-    background: #0a0a0a;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .btn-premium:hover span {
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: #0a0a0a;
+    background-clip: unset;
   }
 
   .btn-premium:hover svg {

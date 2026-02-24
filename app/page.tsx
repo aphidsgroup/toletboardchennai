@@ -33,6 +33,7 @@ async function getPublishedProperties() {
             bedrooms: true,
             bathrooms: true,
             images: true,
+            leasePeriodYears: true,
         },
     });
 }

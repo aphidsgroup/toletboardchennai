@@ -17,6 +17,7 @@ interface SliderProperty {
     bedrooms: number | null;
     bathrooms: number | null;
     images: string | null;
+    leasePeriodYears: number | null;
 }
 
 interface PropertySliderProps {
@@ -128,10 +129,18 @@ export default function PropertySlider({ properties }: PropertySliderProps) {
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                                     {property.areaName}, {property.city}
                                 </p>
-                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
                                     <span className="font-bold text-primary-600 dark:text-primary-400 text-base">
-                                        {formatPrice(property.priceInr)}
+                                        {formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/mo' : ''}
                                     </span>
+                                    {property.dealType === 'lease' && property.leasePeriodYears && (
+                                        <>
+                                            <span>•</span>
+                                            <span className="font-semibold text-gray-800 dark:text-gray-200">
+                                                {property.leasePeriodYears}Y Lease
+                                            </span>
+                                        </>
+                                    )}
                                     <span>•</span>
                                     <span>{formatSize(property.sizeSqft)}</span>
                                     {property.bedrooms && property.bedrooms > 0 && (
