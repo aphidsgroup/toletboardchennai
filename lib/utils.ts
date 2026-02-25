@@ -159,11 +159,11 @@ export function stringifySectionNames(names: SectionNames): string {
 
 // Default section order
 export const DEFAULT_SECTION_ORDER = [
-    'basic-info',
     'tour',
+    'basic-info',
+    'facilities',
+    'locations',
     'specifications',
     'additional-details',
     'property-details',
-    'facilities',
-    'locations',
 ];

@@ -217,12 +217,14 @@ export default async function ListPage({ searchParams }: ListPageProps) {
             </header>
 
             {/* Search & Sort Bar */}
-            <div className="container mx-auto px-4 py-4">
-                <div className="flex items-center gap-3">
-                    <div className="flex-1">
+            <div className="container mx-auto px-4 py-4 max-w-full overflow-hidden">
+                <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                         <SearchBar availableAreas={availableAreas} />
                     </div>
-                    <SortButton />
+                    <div className="flex-shrink-0">
+                        <SortButton />
+                    </div>
                 </div>
             </div>
 

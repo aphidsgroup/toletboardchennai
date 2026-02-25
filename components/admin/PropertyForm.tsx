@@ -313,7 +313,7 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
     };
 
     // All available section IDs
-    const allBuiltInSections = ['basic-info', 'tour', 'specifications', 'property-details', 'facilities', 'locations'];
+    const allBuiltInSections = ['tour', 'basic-info', 'facilities', 'locations', 'specifications', 'property-details'];
     const allSectionIds = [...allBuiltInSections, ...formData.customSections.map(s => s.id)];
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
