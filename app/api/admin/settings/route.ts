@@ -8,8 +8,11 @@ export async function GET() {
     }
 
     try {
-        const settings = await prisma.siteSettings.findUnique({
+        // Auto-create default record if it doesn't exist
+        const settings = await prisma.siteSettings.upsert({
             where: { id: 'default' },
+            update: {},
+            create: { id: 'default' },
         });
 
         return NextResponse.json(settings);

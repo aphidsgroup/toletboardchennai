@@ -147,6 +147,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
 
     const properties = await getProperties(filters);
     const areasBySubtype = await getAreasBySubtype();
+    const siteSettings = await prisma.siteSettings.upsert({ where: { id: 'default' }, update: {}, create: { id: 'default' } });
 
     // Get unique areas for search bar
     const availableAreas = [...new Set(properties.map(p => p.areaName).filter(Boolean))] as string[];
@@ -164,7 +165,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
                             <span className="font-semibold">Back</span>
                         </Link>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                            Properties
+                            {siteSettings?.listPageTitle || 'Properties'}
                         </h1>
                         <div className="w-20" /> {/* Spacer for centering */}
                     </div>

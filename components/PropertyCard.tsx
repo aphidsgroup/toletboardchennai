@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Property } from '@prisma/client';
 import { formatPrice, formatSize } from '@/lib/utils';
+import ShortlistButton from './ShortlistButton';
 
 interface PropertyCardProps {
     property: Property;
@@ -37,6 +38,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                         alt={property.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                    <div className="absolute top-3 left-3">
+                        <ShortlistButton propertyId={property.id} />
+                    </div>
                     <div className="absolute top-3 right-3 flex gap-2">
                         <span className="px-2.5 py-1 bg-primary-600/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full uppercase">
                             {property.dealType}
@@ -51,6 +55,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                     <svg className="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
+                    <div className="absolute top-3 left-3">
+                        <ShortlistButton propertyId={property.id} />
+                    </div>
                     <div className="absolute top-3 right-3 flex gap-2">
                         <span className="px-2.5 py-1 bg-primary-600/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full uppercase">
                             {property.dealType}

@@ -78,6 +78,26 @@ model SiteSettings {
   whatsappNumber       String   @default("+919876543210")
   phoneNumber          String   @default("+919876543210")
   whatsappTemplate     String   @default("Hi, I'm interested in {propertyTitle}. Link: {propertyUrl}")
+  
+  // CMS — Homepage content
+  heroTitle            String   @default("Tolet Board Chennai")
+  heroSubtitle         String   @default("Find Your Perfect Space")
+  heroCta              String   @default("Browse Properties")
+  categoryHeading      String   @default("Browse by Category")
+  typeHeading          String   @default("Browse by Type")
+  recentHeading        String   @default("Recently Added")
+  footerText           String   @default("© 2026 Tolet Board Chennai. All rights reserved.")
+  
+  // CMS — List page content
+  listPageTitle        String   @default("Properties")
+  
+  // CMS — Lead popup
+  leadPopupTitle       String   @default("Looking for a Property?")
+  leadPopupSubtitle    String   @default("Tell us what you need — we'll find it for you!")
+  
+  // Amenities vocabulary
+  amenitiesVocabulary  String?  // JSON array of amenity names
+  
   updatedAt            DateTime @updatedAt
 }
 

@@ -11,8 +11,10 @@ export const metadata: Metadata = {
 };
 
 async function getSiteSettings() {
-    const settings = await prisma.siteSettings.findUnique({
+    const settings = await prisma.siteSettings.upsert({
         where: { id: 'default' },
+        update: {},
+        create: { id: 'default' },
     });
     return settings;
 }
@@ -87,8 +89,11 @@ export default async function HomePage() {
             />
             <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
                 <div className="container mx-auto px-4 py-8 max-w-2xl">
-                    {/* Tagline */}
+                    {/* Hero Section */}
                     <div className="text-center mb-6 animate-fade-in">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                            {settings?.heroTitle || 'Tolet Board Chennai'}
+                        </h1>
                         <p className="text-lg text-gray-600 dark:text-gray-400">
                             {settings?.tagline || '360° Tours • Rent & Lease • Chennai'}
                         </p>
@@ -102,7 +107,7 @@ export default async function HomePage() {
                     {/* 2. Browse by Category */}
                     <div className="mb-8">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                            Browse by Category
+                            {settings?.categoryHeading || 'Browse by Category'}
                         </h2>
                         <div className="grid grid-cols-3 gap-3">
                             {categories.map((cat) => (
@@ -125,7 +130,7 @@ export default async function HomePage() {
                     {/* 3. Browse by Type */}
                     <div className="mb-8">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                            Browse by Type
+                            {settings?.typeHeading || 'Browse by Type'}
                         </h2>
                         <div className="grid grid-cols-2 gap-4">
                             <Link
@@ -155,7 +160,7 @@ export default async function HomePage() {
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                    Recently Added
+                                    {settings?.recentHeading || 'Recently Added'}
                                 </h2>
                                 <Link
                                     href="/list"
@@ -201,11 +206,11 @@ export default async function HomePage() {
 
                     {/* Footer */}
                     <footer className="text-center text-sm text-gray-500 dark:text-gray-400 mt-12">
-                        <p>© 2026 {settings?.brandName || 'Tolet Board Chennai'}. All rights reserved.</p>
+                        <p>{settings?.footerText || `© 2026 ${settings?.brandName || 'Tolet Board Chennai'}. All rights reserved.`}</p>
                     </footer>
                 </div>
             </main>
-            <LeadPopupForm />
+            <LeadPopupForm popupTitle={settings?.leadPopupTitle} popupSubtitle={settings?.leadPopupSubtitle} />
         </>
     );
 }

@@ -15,6 +15,16 @@ export default function SettingsPage() {
         whatsappNumber: '',
         phoneNumber: '',
         whatsappTemplate: '',
+        heroTitle: '',
+        heroSubtitle: '',
+        heroCta: '',
+        categoryHeading: '',
+        typeHeading: '',
+        recentHeading: '',
+        footerText: '',
+        listPageTitle: '',
+        leadPopupTitle: '',
+        leadPopupSubtitle: '',
         amenitiesVocabulary: [] as string[],
     });
 
@@ -28,10 +38,27 @@ export default function SettingsPage() {
         try {
             const res = await fetch('/api/admin/settings');
             const data = await res.json();
-            setFormData({
-                ...data,
-                amenitiesVocabulary: JSON.parse(data.amenitiesVocabulary),
-            });
+            if (data && !data.error) {
+                setFormData({
+                    brandName: data.brandName || '',
+                    tagline: data.tagline || '',
+                    city: data.city || '',
+                    whatsappNumber: data.whatsappNumber || '',
+                    phoneNumber: data.phoneNumber || '',
+                    whatsappTemplate: data.whatsappTemplate || '',
+                    heroTitle: data.heroTitle || '',
+                    heroSubtitle: data.heroSubtitle || '',
+                    heroCta: data.heroCta || '',
+                    categoryHeading: data.categoryHeading || '',
+                    typeHeading: data.typeHeading || '',
+                    recentHeading: data.recentHeading || '',
+                    footerText: data.footerText || '',
+                    listPageTitle: data.listPageTitle || '',
+                    leadPopupTitle: data.leadPopupTitle || '',
+                    leadPopupSubtitle: data.leadPopupSubtitle || '',
+                    amenitiesVocabulary: data.amenitiesVocabulary ? JSON.parse(data.amenitiesVocabulary) : [],
+                });
+            }
         } catch (error) {
             console.error('Error fetching settings:', error);
         } finally {
@@ -84,6 +111,10 @@ export default function SettingsPage() {
         });
     };
 
+    const updateField = (key: string, value: string) => {
+        setFormData(prev => ({ ...prev, [key]: value }));
+    };
+
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-8">
@@ -101,7 +132,7 @@ export default function SettingsPage() {
                     Site Settings
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                    Configure your site's global settings
+                    Configure your site&apos;s global settings and page content
                 </p>
             </div>
 
@@ -109,82 +140,19 @@ export default function SettingsPage() {
                 {/* Brand Settings */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Brand Settings</h2>
-
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                Brand Name
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.brandName}
-                                onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                Tagline
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.tagline}
-                                onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                Default City
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.city}
-                                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                            />
-                        </div>
+                        <Field label="Brand Name" value={formData.brandName} onChange={(v) => updateField('brandName', v)} />
+                        <Field label="Tagline" value={formData.tagline} onChange={(v) => updateField('tagline', v)} />
+                        <Field label="Default City" value={formData.city} onChange={(v) => updateField('city', v)} />
                     </div>
                 </div>
 
                 {/* Contact Settings */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Contact Settings</h2>
-
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                WhatsApp Number
-                            </label>
-                            <input
-                                type="tel"
-                                required
-                                value={formData.whatsappNumber}
-                                onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
-                                placeholder="+919876543210"
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                Phone Number
-                            </label>
-                            <input
-                                type="tel"
-                                required
-                                value={formData.phoneNumber}
-                                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                                placeholder="+919876543210"
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
-                            />
-                        </div>
-
+                        <Field label="WhatsApp Number" value={formData.whatsappNumber} onChange={(v) => updateField('whatsappNumber', v)} placeholder="+919876543210" type="tel" />
+                        <Field label="Phone Number" value={formData.phoneNumber} onChange={(v) => updateField('phoneNumber', v)} placeholder="+919876543210" type="tel" />
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                                 WhatsApp Message Template
@@ -193,7 +161,7 @@ export default function SettingsPage() {
                                 required
                                 rows={3}
                                 value={formData.whatsappTemplate}
-                                onChange={(e) => setFormData({ ...formData, whatsappTemplate: e.target.value })}
+                                onChange={(e) => updateField('whatsappTemplate', e.target.value)}
                                 placeholder="Hi, I'm interested in {propertyTitle}. Link: {propertyUrl}"
                                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
                             />
@@ -201,6 +169,40 @@ export default function SettingsPage() {
                                 Use {'{propertyTitle}'} and {'{propertyUrl}'} as placeholders
                             </p>
                         </div>
+                    </div>
+                </div>
+
+                {/* Homepage Content */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Homepage Content</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Edit all text shown on the homepage</p>
+                    <div className="space-y-4">
+                        <Field label="Hero Title" value={formData.heroTitle} onChange={(v) => updateField('heroTitle', v)} placeholder="Tolet Board Chennai" />
+                        <Field label="Hero Subtitle" value={formData.heroSubtitle} onChange={(v) => updateField('heroSubtitle', v)} placeholder="Find Your Perfect Space" />
+                        <Field label="Hero CTA Button" value={formData.heroCta} onChange={(v) => updateField('heroCta', v)} placeholder="Browse Properties" />
+                        <Field label="Browse by Category — Section Title" value={formData.categoryHeading} onChange={(v) => updateField('categoryHeading', v)} />
+                        <Field label="Browse by Type — Section Title" value={formData.typeHeading} onChange={(v) => updateField('typeHeading', v)} />
+                        <Field label="Recently Added — Section Title" value={formData.recentHeading} onChange={(v) => updateField('recentHeading', v)} />
+                        <Field label="Footer Text" value={formData.footerText} onChange={(v) => updateField('footerText', v)} placeholder="© 2026 Tolet Board Chennai. All rights reserved." />
+                    </div>
+                </div>
+
+                {/* Listing Page Content */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Listing Page Content</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Edit text shown on the property listing page</p>
+                    <div className="space-y-4">
+                        <Field label="Page Title" value={formData.listPageTitle} onChange={(v) => updateField('listPageTitle', v)} placeholder="Properties" />
+                    </div>
+                </div>
+
+                {/* Lead Popup Content */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Lead Popup Content</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Edit text shown in the lead capture popup on homepage</p>
+                    <div className="space-y-4">
+                        <Field label="Popup Title" value={formData.leadPopupTitle} onChange={(v) => updateField('leadPopupTitle', v)} />
+                        <Field label="Popup Subtitle" value={formData.leadPopupSubtitle} onChange={(v) => updateField('leadPopupSubtitle', v)} />
                     </div>
                 </div>
 
@@ -270,6 +272,31 @@ export default function SettingsPage() {
                     </button>
                 </div>
             </form>
+        </div>
+    );
+}
+
+// Reusable field component
+function Field({ label, value, onChange, placeholder, type = 'text' }: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    placeholder?: string;
+    type?: string;
+}) {
+    return (
+        <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                {label}
+            </label>
+            <input
+                type={type}
+                required
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+            />
         </div>
     );
 }

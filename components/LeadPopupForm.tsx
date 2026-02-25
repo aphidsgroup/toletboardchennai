@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 
-export default function LeadPopupForm() {
+export default function LeadPopupForm({ popupTitle, popupSubtitle }: {
+    popupTitle?: string;
+    popupSubtitle?: string;
+}) {
     const [show, setShow] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -86,10 +89,10 @@ export default function LeadPopupForm() {
                     <div className="p-6">
                         <div className="text-center mb-5">
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                                Looking for a Property?
+                                {popupTitle || 'Looking for a Property?'}
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Tell us what you need and we&apos;ll find the best options for you
+                                {popupSubtitle || 'Tell us what you need and we\'ll find the best options for you'}
                             </p>
                         </div>
 
@@ -128,8 +131,8 @@ export default function LeadPopupForm() {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, lookingFor: type })}
                                         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${formData.lookingFor === type
-                                                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                                : 'text-gray-500'
+                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500'
                                             }`}
                                     >
                                         {type.charAt(0).toUpperCase() + type.slice(1)}
