@@ -7,6 +7,46 @@ export default function SettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+    const [pwError, setPwError] = useState('');
+    const [pwSuccess, setPwSuccess] = useState('');
+    const [pwSaving, setPwSaving] = useState(false);
+
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPwError('');
+        setPwSuccess('');
+
+        if (pwForm.newPw !== pwForm.confirm) {
+            setPwError('New passwords do not match');
+            return;
+        }
+        if (pwForm.newPw.length < 6) {
+            setPwError('New password must be at least 6 characters');
+            return;
+        }
+
+        setPwSaving(true);
+        try {
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.newPw }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setPwError(data.error || 'Failed to change password');
+            } else {
+                setPwSuccess('Password changed successfully!');
+                setPwForm({ current: '', newPw: '', confirm: '' });
+            }
+        } catch {
+            setPwError('Something went wrong');
+        } finally {
+            setPwSaving(false);
+        }
+    };
+
 
     const [formData, setFormData] = useState({
         brandName: '',
@@ -251,6 +291,66 @@ export default function SettingsPage() {
                                 </button>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* Change Admin Password */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Change Admin Password</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Update your admin login password</p>
+
+                    {pwError && (
+                        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm">
+                            {pwError}
+                        </div>
+                    )}
+                    {pwSuccess && (
+                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm">
+                            {pwSuccess}
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Current Password</label>
+                            <input
+                                type="password"
+                                value={pwForm.current}
+                                onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                                placeholder="Enter current password"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">New Password</label>
+                                <input
+                                    type="password"
+                                    value={pwForm.newPw}
+                                    onChange={(e) => setPwForm({ ...pwForm, newPw: e.target.value })}
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                                    placeholder="Min 6 characters"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    value={pwForm.confirm}
+                                    onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
+                                    placeholder="Re-enter new password"
+                                />
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handlePasswordChange}
+                            disabled={pwSaving}
+                            className="px-6 py-3 bg-gray-900 dark:bg-gray-600 hover:bg-gray-800 dark:hover:bg-gray-500 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                        >
+                            {pwSaving ? 'Changing...' : 'Change Password'}
+                        </button>
                     </div>
                 </div>
 

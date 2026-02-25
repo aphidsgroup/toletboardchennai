@@ -40,6 +40,11 @@ export default function AdminManagersPage() {
     const [createError, setCreateError] = useState('');
     const [creating, setCreating] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [passwordChangeId, setPasswordChangeId] = useState<string | null>(null);
+    const [passwordForm, setPasswordForm] = useState({ password: '', confirm: '' });
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
 
     const fetchManagers = useCallback(async () => {
         const res = await fetch('/api/admin/managers');
@@ -112,6 +117,39 @@ export default function AdminManagersPage() {
         if (res.ok) {
             setManagers(prev => prev.filter(m => m.id !== id));
         }
+    }
+
+    async function handleChangeManagerPassword(managerId: string) {
+        if (passwordForm.password !== passwordForm.confirm) {
+            setPasswordError('Passwords do not match');
+            return;
+        }
+        if (passwordForm.password.length < 6) {
+            setPasswordError('Password must be at least 6 characters');
+            return;
+        }
+        setChangingPassword(true);
+        setPasswordError('');
+        setPasswordSuccess('');
+
+        const res = await fetch('/api/admin/managers', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: managerId, password: passwordForm.password }),
+        });
+
+        if (res.ok) {
+            setPasswordSuccess('Password changed successfully');
+            setPasswordForm({ password: '', confirm: '' });
+            setTimeout(() => {
+                setPasswordChangeId(null);
+                setPasswordSuccess('');
+            }, 2000);
+        } else {
+            const data = await res.json();
+            setPasswordError(data.error || 'Failed to change password');
+        }
+        setChangingPassword(false);
     }
 
     if (loading) {
@@ -235,8 +273,8 @@ export default function AdminManagersPage() {
                                                 {manager.name}
                                             </h3>
                                             <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${manager.isActive
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                                 }`}>
                                                 {manager.isActive ? 'Active' : 'Disabled'}
                                             </span>
@@ -250,8 +288,8 @@ export default function AdminManagersPage() {
                                             <span
                                                 key={key}
                                                 className={`px-2 py-0.5 text-xs rounded-full font-medium ${val
-                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                        : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500 line-through'
+                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                    : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500 line-through'
                                                     }`}
                                             >
                                                 {key.replace('view', '')}
@@ -287,8 +325,8 @@ export default function AdminManagersPage() {
                                                         key={key}
                                                         onClick={() => togglePermission(manager.id, manager.permissions, key)}
                                                         className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${perms[key]
-                                                                ? 'border-green-400 bg-green-50 dark:bg-green-900/10 dark:border-green-700'
-                                                                : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750 opacity-60'
+                                                            ? 'border-green-400 bg-green-50 dark:bg-green-900/10 dark:border-green-700'
+                                                            : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750 opacity-60'
                                                             }`}
                                                     >
                                                         <svg className={`w-5 h-5 flex-shrink-0 ${perms[key] ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,6 +342,78 @@ export default function AdminManagersPage() {
                                                         </div>
                                                     </button>
                                                 ))}
+                                            </div>
+
+                                            {/* Change Password Section */}
+                                            <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                                                {passwordChangeId === manager.id ? (
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                            Change Password for {manager.name}
+                                                        </h4>
+                                                        {passwordError && (
+                                                            <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-xs">
+                                                                {passwordError}
+                                                            </div>
+                                                        )}
+                                                        {passwordSuccess && (
+                                                            <div className="p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-400 text-xs">
+                                                                {passwordSuccess}
+                                                            </div>
+                                                        )}
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            <input
+                                                                type="password"
+                                                                placeholder="New password (min 6 chars)"
+                                                                value={passwordForm.password}
+                                                                onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
+                                                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500"
+                                                            />
+                                                            <input
+                                                                type="password"
+                                                                placeholder="Confirm password"
+                                                                value={passwordForm.confirm}
+                                                                onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                                                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500"
+                                                            />
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => handleChangeManagerPassword(manager.id)}
+                                                                disabled={changingPassword}
+                                                                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                                                            >
+                                                                {changingPassword ? 'Saving...' : 'Save Password'}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setPasswordChangeId(null);
+                                                                    setPasswordForm({ password: '', confirm: '' });
+                                                                    setPasswordError('');
+                                                                    setPasswordSuccess('');
+                                                                }}
+                                                                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setPasswordChangeId(manager.id);
+                                                            setPasswordForm({ password: '', confirm: '' });
+                                                            setPasswordError('');
+                                                            setPasswordSuccess('');
+                                                        }}
+                                                        className="flex items-center gap-2 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                                        </svg>
+                                                        Change Password
+                                                    </button>
+                                                )}
                                             </div>
 
                                             <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">

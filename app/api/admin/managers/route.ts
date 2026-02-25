@@ -90,7 +90,7 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, isActive, permissions, name } = await request.json();
+        const { id, isActive, permissions, name, password } = await request.json();
 
         if (!id) {
             return NextResponse.json({ error: 'Manager ID required' }, { status: 400 });
@@ -100,6 +100,12 @@ export async function PATCH(request: Request) {
         if (typeof isActive === 'boolean') updateData.isActive = isActive;
         if (permissions) updateData.permissions = JSON.stringify(permissions);
         if (name) updateData.name = name;
+        if (password) {
+            if (password.length < 6) {
+                return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
+            }
+            updateData.passwordHash = await hashPassword(password);
+        }
 
         const manager = await prisma.manager.update({
             where: { id },
