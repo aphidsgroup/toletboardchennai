@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [loginType, setLoginType] = useState<'admin' | 'manager'>('admin');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -16,7 +17,11 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/auth/login', {
+            const endpoint = loginType === 'manager'
+                ? '/api/auth/manager/login'
+                : '/api/auth/login';
+
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -30,7 +35,11 @@ export default function LoginPage() {
                 return;
             }
 
-            router.push('/admin');
+            if (loginType === 'manager') {
+                router.push('/manager');
+            } else {
+                router.push('/admin');
+            }
             router.refresh();
         } catch (err) {
             setError('An error occurred. Please try again.');
@@ -48,7 +57,7 @@ export default function LoginPage() {
                         </svg>
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        Admin Login
+                        Admin Panel
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400">
                         Tolet Board Chennai CMS
@@ -56,6 +65,28 @@ export default function LoginPage() {
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                    {/* Login Type Toggle */}
+                    <div className="flex rounded-xl bg-gray-100 dark:bg-gray-700 p-1 mb-6">
+                        <button
+                            onClick={() => { setLoginType('admin'); setError(''); }}
+                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${loginType === 'admin'
+                                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400'
+                                }`}
+                        >
+                            Admin Login
+                        </button>
+                        <button
+                            onClick={() => { setLoginType('manager'); setError(''); }}
+                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${loginType === 'manager'
+                                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400'
+                                }`}
+                        >
+                            Manager Login
+                        </button>
+                    </div>
+
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
                             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
@@ -74,7 +105,7 @@ export default function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                placeholder="admin@toletboardchennai.com"
+                                placeholder={loginType === 'admin' ? 'admin@toletboardchennai.com' : 'manager@example.com'}
                             />
                         </div>
 
@@ -98,14 +129,9 @@ export default function LoginPage() {
                             disabled={loading}
                             className="w-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Logging in...' : 'Login'}
+                            {loading ? 'Logging in...' : `Login as ${loginType === 'admin' ? 'Admin' : 'Manager'}`}
                         </button>
                     </form>
-
-                    <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-                        <p>Default credentials:</p>
-                        <p className="font-mono text-xs mt-1">admin@toletboardchennai.com</p>
-                    </div>
                 </div>
             </div>
         </div>

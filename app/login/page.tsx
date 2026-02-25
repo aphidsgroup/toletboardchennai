@@ -10,7 +10,6 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [loginType, setLoginType] = useState<'user' | 'manager'>('user');
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -18,11 +17,7 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const endpoint = loginType === 'manager'
-                ? '/api/auth/manager/login'
-                : '/api/auth/user/login';
-
-            const res = await fetch(endpoint, {
+            const res = await fetch('/api/auth/user/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -35,12 +30,7 @@ export default function LoginPage() {
                 return;
             }
 
-            // Redirect based on role
-            if (loginType === 'manager') {
-                router.push('/manager');
-            } else {
-                router.push('/');
-            }
+            router.push('/');
             router.refresh();
         } catch {
             setError('Something went wrong. Please try again.');
@@ -56,28 +46,6 @@ export default function LoginPage() {
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>
                         <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
-                    </div>
-
-                    {/* Login Type Toggle */}
-                    <div className="flex rounded-xl bg-gray-100 dark:bg-gray-700 p-1 mb-6">
-                        <button
-                            onClick={() => setLoginType('user')}
-                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${loginType === 'user'
-                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400'
-                                }`}
-                        >
-                            User Login
-                        </button>
-                        <button
-                            onClick={() => setLoginType('manager')}
-                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${loginType === 'manager'
-                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400'
-                                }`}
-                        >
-                            Manager Login
-                        </button>
                     </div>
 
                     {error && (
@@ -124,14 +92,12 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {loginType === 'user' && (
-                        <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
-                            Don&apos;t have an account?{' '}
-                            <Link href="/register" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
-                                Sign Up
-                            </Link>
-                        </p>
-                    )}
+                    <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
+                        Don&apos;t have an account?{' '}
+                        <Link href="/register" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
+                            Sign Up
+                        </Link>
+                    </p>
                 </div>
             </div>
         </main>
