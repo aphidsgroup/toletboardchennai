@@ -23,6 +23,7 @@ import ContactBar from '@/components/ContactBar';
 import TeleportMeEmbed from '@/components/TeleportMeEmbed';
 import FacilitiesAndLocations from '@/components/FacilitiesAndLocations';
 import FloatingShortlistButton from '@/components/FloatingShortlistButton';
+import PropertySlider from '@/components/PropertySlider';
 
 interface PropertyPageProps {
     params: Promise<{
@@ -42,6 +43,38 @@ async function getSiteSettings() {
         where: { id: 'default' },
     });
     return settings;
+}
+
+async function getSimilarProperties(property: { id: string; areaName: string; usageType: string; dealType: string }) {
+    const similar = await prisma.property.findMany({
+        where: {
+            isPublished: true,
+            id: { not: property.id },
+            OR: [
+                { areaName: property.areaName },
+                { usageType: property.usageType },
+                { dealType: property.dealType },
+            ],
+        },
+        select: {
+            id: true,
+            slug: true,
+            title: true,
+            dealType: true,
+            usageType: true,
+            areaName: true,
+            city: true,
+            priceInr: true,
+            sizeSqft: true,
+            bedrooms: true,
+            bathrooms: true,
+            images: true,
+            leasePeriodYears: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+    });
+    return similar;
 }
 
 // Dynamic SEO metadata per property
@@ -98,7 +131,10 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
 export default async function PropertyPage({ params }: PropertyPageProps) {
     const { slug } = await params;
     const property = await getProperty(slug);
-    const settings = await getSiteSettings();
+    const [settings, similarProperties] = await Promise.all([
+        getSiteSettings(),
+        getProperty(slug).then(p => p ? getSimilarProperties(p) : []),
+    ]);
 
     if (!property) {
         notFound();
@@ -513,6 +549,16 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                             Use the buttons below to get in touch
                         </p>
                     </div>
+
+                    {/* People Also Viewed */}
+                    {similarProperties.length > 0 && (
+                        <div className="mt-2">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                                People Also Viewed
+                            </h2>
+                            <PropertySlider properties={similarProperties} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Floating Shortlist Button */}
