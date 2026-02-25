@@ -13,6 +13,7 @@ datasource db {
 
 model Admin {
   id           String   @id @default(cuid())
+  name         String   @default("Admin")
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
@@ -28,6 +29,7 @@ model Property {
   areaName        String
   city            String   @default("Chennai")
   priceInr        Int
+  isNegotiable    Boolean  @default(false)
   sizeSqft        Int
   bedrooms        Int?
   bathrooms       Int?
@@ -59,6 +61,8 @@ model Property {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  shortlists      Shortlist[]
+
   @@index([dealType])
   @@index([usageType])
   @@index([areaName])
@@ -75,4 +79,48 @@ model SiteSettings {
   phoneNumber          String   @default("+919876543210")
   whatsappTemplate     String   @default("Hi, I'm interested in {propertyTitle}. Link: {propertyUrl}")
   updatedAt            DateTime @updatedAt
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  phone        String?
+  passwordHash String
+  shortlists   Shortlist[]
+  createdAt    DateTime    @default(now())
+}
+
+model Manager {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  isActive     Boolean  @default(true)
+  permissions  String?  // JSON: {"viewLeads":true,"viewUsers":true,"viewProperties":true}
+  createdAt    DateTime @default(now())
+}
+
+model Shortlist {
+  id         String   @id @default(cuid())
+  userId     String
+  propertyId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+}
+
+model LeadFormResponse {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String
+  email         String?
+  lookingFor    String   // "rent" or "lease"
+  propertyType  String?  // "apartment", "villa", etc.
+  budgetRange   String?
+  preferredArea String?
+  message       String?
+  createdAt     DateTime @default(now())
 }

@@ -78,6 +78,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                     <span className="font-bold text-primary-600 dark:text-primary-400 text-xl">
                         {formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/mo' : ''}
                     </span>
+                    {property.isNegotiable && (
+                        <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-semibold rounded-full">
+                            Negotiable
+                        </span>
+                    )}
                     {property.dealType === 'lease' && property.leasePeriodYears && (
                         <>
                             <span>•</span>

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import PropertySlider from '@/components/PropertySlider';
 import SearchBar from '@/components/SearchBar';
+import LeadPopupForm from '@/components/LeadPopupForm';
 
 export const metadata: Metadata = {
     title: 'Tolet Board Chennai - 360° Virtual Property Tours | Rent & Lease Properties',
@@ -86,24 +87,12 @@ export default async function HomePage() {
             />
             <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
                 <div className="container mx-auto px-4 py-8 max-w-2xl">
-                    {/* Header */}
-                    <header className="text-center mb-8 animate-fade-in">
-                        <div className="mb-4">
-                            <div className="w-28 h-28 mx-auto rounded-full shadow-lg overflow-hidden">
-                                <img
-                                    src="/logo.png"
-                                    alt="Tolet Board Chennai"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        </div>
-                        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2 whitespace-nowrap">
-                            {settings?.brandName || 'Tolet Board Chennai'}
-                        </h1>
+                    {/* Tagline */}
+                    <div className="text-center mb-6 animate-fade-in">
                         <p className="text-lg text-gray-600 dark:text-gray-400">
                             {settings?.tagline || '360° Tours • Rent & Lease • Chennai'}
                         </p>
-                    </header>
+                    </div>
 
                     {/* 1. Search */}
                     <div className="mb-8">
@@ -216,6 +205,7 @@ export default async function HomePage() {
                     </footer>
                 </div>
             </main>
+            <LeadPopupForm />
         </>
     );
 }

@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import PropertyCard from '@/components/PropertyCard';
 import FilterSheet from '@/components/FilterSheet';
+import SearchBar from '@/components/SearchBar';
+import SortButton from '@/components/SortButton';
 import { DealType, UsageType } from '@/lib/types';
 
 interface ListPageProps {
@@ -14,6 +16,7 @@ interface ListPageProps {
         areas?: string;
         bhk?: string;
         q?: string;
+        sort?: string;
         minPrice?: string;
         maxPrice?: string;
         minSize?: string;
@@ -51,6 +54,7 @@ async function getProperties(filters: {
     areas?: string[];
     bhk?: number;
     q?: string;
+    sort?: string;
     minPrice?: number;
     maxPrice?: number;
     minSize?: number;
@@ -88,7 +92,11 @@ async function getProperties(filters: {
 
     return await prisma.property.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: filters.sort === 'price_asc' ? { priceInr: 'asc' }
+            : filters.sort === 'price_desc' ? { priceInr: 'desc' }
+                : filters.sort === 'oldest' ? { createdAt: 'asc' }
+                    : filters.sort === 'size_desc' ? { sizeSqft: 'desc' }
+                        : { createdAt: 'desc' },
     });
 }
 
@@ -130,6 +138,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
         areas: areasParam,
         bhk: params.bhk ? parseInt(params.bhk) : undefined,
         q: params.q,
+        sort: params.sort,
         minPrice: params.minPrice ? parseInt(params.minPrice) : undefined,
         maxPrice: params.maxPrice ? parseInt(params.maxPrice) : undefined,
         minSize: params.minSize ? parseInt(params.minSize) : undefined,
@@ -138,6 +147,9 @@ export default async function ListPage({ searchParams }: ListPageProps) {
 
     const properties = await getProperties(filters);
     const areasBySubtype = await getAreasBySubtype();
+
+    // Get unique areas for search bar
+    const availableAreas = [...new Set(properties.map(p => p.areaName).filter(Boolean))] as string[];
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -203,8 +215,18 @@ export default async function ListPage({ searchParams }: ListPageProps) {
                 </div>
             </header>
 
+            {/* Search & Sort Bar */}
+            <div className="container mx-auto px-4 py-4">
+                <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                        <SearchBar availableAreas={availableAreas} />
+                    </div>
+                    <SortButton />
+                </div>
+            </div>
+
             {/* Results */}
-            <div className="container mx-auto px-4 py-6 pb-24">
+            <div className="container mx-auto px-4 py-2 pb-24">
                 {/* Results Count */}
                 <div className="mb-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400">

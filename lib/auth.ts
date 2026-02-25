@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 export interface SessionData {
     userId: string;
     email: string;
+    name: string;
+    role: 'admin' | 'manager' | 'user';
     isLoggedIn: boolean;
 }
 

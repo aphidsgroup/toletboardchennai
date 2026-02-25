@@ -186,6 +186,11 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                                     <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                                         {formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/mo' : ''}
                                     </p>
+                                    {property.isNegotiable && (
+                                        <span className="inline-block mt-1 px-2.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-semibold rounded-full">
+                                            Negotiable
+                                        </span>
+                                    )}
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Size</p>

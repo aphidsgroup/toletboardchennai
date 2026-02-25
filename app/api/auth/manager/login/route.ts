@@ -13,20 +13,23 @@ export async function POST(request: Request) {
             );
         }
 
-        // Find admin user
-        const admin = await prisma.admin.findUnique({
-            where: { email },
-        });
+        const manager = await prisma.manager.findUnique({ where: { email } });
 
-        if (!admin) {
+        if (!manager) {
             return NextResponse.json(
                 { error: 'Invalid credentials' },
                 { status: 401 }
             );
         }
 
-        // Verify password
-        const isValid = await verifyPassword(password, admin.passwordHash);
+        if (!manager.isActive) {
+            return NextResponse.json(
+                { error: 'Your account has been deactivated. Contact admin.' },
+                { status: 403 }
+            );
+        }
+
+        const isValid = await verifyPassword(password, manager.passwordHash);
 
         if (!isValid) {
             return NextResponse.json(
@@ -37,16 +40,16 @@ export async function POST(request: Request) {
 
         // Create session
         const session = await getSession();
-        session.userId = admin.id;
-        session.email = admin.email;
-        session.name = admin.name;
-        session.role = 'admin';
+        session.userId = manager.id;
+        session.email = manager.email;
+        session.name = manager.name;
+        session.role = 'manager';
         session.isLoggedIn = true;
         await session.save();
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Manager login error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

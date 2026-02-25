@@ -44,6 +44,7 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
         areaName: property?.areaName || '',
         city: property?.city || 'Chennai',
         priceInr: property?.priceInr || 0,
+        isNegotiable: property?.isNegotiable || false,
         advanceMonths: property?.advanceMonths || null,
         leasePeriodYears: property?.leasePeriodYears || null,
         sizeSqft: property?.sizeSqft || 0,
@@ -497,6 +498,15 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
                             onChange={(e) => setFormData({ ...formData, priceInr: parseInt(e.target.value) || 0 })}
                             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500"
                         />
+                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={formData.isNegotiable}
+                                onChange={(e) => setFormData({ ...formData, isNegotiable: e.target.checked })}
+                                className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                            />
+                            <span className="text-sm text-gray-700 dark:text-gray-300">Price is Negotiable</span>
+                        </label>
                     </div>
 
                     {/* Conditional: Advance Payment for Rent */}

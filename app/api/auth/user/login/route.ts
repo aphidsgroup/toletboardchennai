@@ -13,20 +13,16 @@ export async function POST(request: Request) {
             );
         }
 
-        // Find admin user
-        const admin = await prisma.admin.findUnique({
-            where: { email },
-        });
+        const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!admin) {
+        if (!user) {
             return NextResponse.json(
                 { error: 'Invalid credentials' },
                 { status: 401 }
             );
         }
 
-        // Verify password
-        const isValid = await verifyPassword(password, admin.passwordHash);
+        const isValid = await verifyPassword(password, user.passwordHash);
 
         if (!isValid) {
             return NextResponse.json(
@@ -37,16 +33,16 @@ export async function POST(request: Request) {
 
         // Create session
         const session = await getSession();
-        session.userId = admin.id;
-        session.email = admin.email;
-        session.name = admin.name;
-        session.role = 'admin';
+        session.userId = user.id;
+        session.email = user.email;
+        session.name = user.name;
+        session.role = 'user';
         session.isLoggedIn = true;
         await session.save();
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('User login error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
