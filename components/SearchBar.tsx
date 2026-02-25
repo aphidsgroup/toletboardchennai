@@ -114,7 +114,7 @@ export default function SearchBar({ availableAreas = [] }: SearchBarProps) {
 
     return (
         <div ref={wrapperRef} className="relative">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2 flex items-center gap-2 min-w-0">
                 <svg className="w-5 h-5 text-gray-400 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -129,7 +129,7 @@ export default function SearchBar({ availableAreas = [] }: SearchBarProps) {
                     onKeyDown={handleKeyDown}
                     onFocus={() => setShowSuggestions(true)}
                     placeholder="Search by area..."
-                    className="flex-1 px-2 py-2.5 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none text-sm"
+                    className="flex-1 min-w-0 px-2 py-2.5 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none text-sm"
                     autoComplete="off"
                 />
                 <button

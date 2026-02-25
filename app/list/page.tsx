@@ -5,6 +5,7 @@ import PropertyCard from '@/components/PropertyCard';
 import FilterSheet from '@/components/FilterSheet';
 import SearchBar from '@/components/SearchBar';
 import SortButton from '@/components/SortButton';
+import FloatingShortlistButton from '@/components/FloatingShortlistButton';
 import { DealType, UsageType } from '@/lib/types';
 
 interface ListPageProps {
@@ -217,9 +218,9 @@ export default async function ListPage({ searchParams }: ListPageProps) {
             </header>
 
             {/* Search & Sort Bar */}
-            <div className="container mx-auto px-4 py-4 max-w-full overflow-hidden">
+            <div className="container mx-auto px-4 py-4">
                 <div className="flex items-center gap-2">
-                    <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex-1 min-w-0">
                         <SearchBar availableAreas={availableAreas} />
                     </div>
                     <div className="flex-shrink-0">
@@ -267,6 +268,9 @@ export default async function ListPage({ searchParams }: ListPageProps) {
 
             {/* Filter Sheet */}
             <FilterSheet areasBySubtype={areasBySubtype} />
+
+            {/* Floating Shortlist Button */}
+            <FloatingShortlistButton />
         </main>
     );
 }

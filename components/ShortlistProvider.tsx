@@ -6,12 +6,14 @@ interface ShortlistContextType {
     shortlistedIds: Set<string>;
     toggleShortlist: (propertyId: string) => Promise<void>;
     isLoaded: boolean;
+    isLoggedIn: boolean;
 }
 
 const ShortlistContext = createContext<ShortlistContextType>({
     shortlistedIds: new Set(),
     toggleShortlist: async () => { },
     isLoaded: false,
+    isLoggedIn: false,
 });
 
 export function useShortlist() {
@@ -21,18 +23,27 @@ export function useShortlist() {
 export function ShortlistProvider({ children }: { children: React.ReactNode }) {
     const [shortlistedIds, setShortlistedIds] = useState<Set<string>>(new Set());
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        fetchShortlists();
+        checkAuthAndFetch();
     }, []);
 
-    const fetchShortlists = async () => {
+    const checkAuthAndFetch = async () => {
         try {
-            const res = await fetch('/api/user/shortlist');
-            const data = await res.json();
-            if (data.shortlists && Array.isArray(data.shortlists)) {
-                const ids = new Set<string>(data.shortlists.map((s: any) => s.property?.id || s.propertyId));
-                setShortlistedIds(ids);
+            // Check auth status first
+            const authRes = await fetch('/api/auth/me');
+            const authData = await authRes.json();
+
+            if (authData.user && authData.user.role === 'user') {
+                setIsLoggedIn(true);
+                // Fetch shortlists only if logged in as user
+                const res = await fetch('/api/user/shortlist');
+                const data = await res.json();
+                if (data.shortlists && Array.isArray(data.shortlists)) {
+                    const ids = new Set<string>(data.shortlists.map((s: any) => s.property?.id || s.propertyId));
+                    setShortlistedIds(ids);
+                }
             }
         } catch {
             // Not logged in or error — ignore
@@ -66,7 +77,7 @@ export function ShortlistProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <ShortlistContext.Provider value={{ shortlistedIds, toggleShortlist, isLoaded }}>
+        <ShortlistContext.Provider value={{ shortlistedIds, toggleShortlist, isLoaded, isLoggedIn }}>
             {children}
         </ShortlistContext.Provider>
     );
