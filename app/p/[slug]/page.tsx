@@ -22,6 +22,7 @@ import {
 import ContactBar from '@/components/ContactBar';
 import TeleportMeEmbed from '@/components/TeleportMeEmbed';
 import FacilitiesAndLocations from '@/components/FacilitiesAndLocations';
+import FloatingShortlistButton from '@/components/FloatingShortlistButton';
 
 interface PropertyPageProps {
     params: Promise<{
@@ -513,6 +514,9 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                         </p>
                     </div>
                 </div>
+
+                {/* Floating Shortlist Button */}
+                <FloatingShortlistButton propertyId={property.id} />
 
                 {/* Contact Bar */}
                 <ContactBar

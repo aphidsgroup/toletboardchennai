@@ -104,7 +104,25 @@ export default async function HomePage() {
                         <SearchBar availableAreas={availableAreas} />
                     </div>
 
-                    {/* 2. Browse by Category */}
+                    {/* 2. Recently Added */}
+                    {properties.length > 0 && (
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                    {settings?.recentHeading || 'Recently Added'}
+                                </h2>
+                                <Link
+                                    href="/list"
+                                    className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                                >
+                                    View All →
+                                </Link>
+                            </div>
+                            <PropertySlider properties={properties} />
+                        </div>
+                    )}
+
+                    {/* 3. Browse by Category */}
                     <div className="mb-8">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                             {settings?.categoryHeading || 'Browse by Category'}
@@ -127,7 +145,7 @@ export default async function HomePage() {
                         </div>
                     </div>
 
-                    {/* 3. Browse by Type */}
+                    {/* 4. Browse by Type */}
                     <div className="mb-8">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                             {settings?.typeHeading || 'Browse by Type'}
@@ -154,24 +172,6 @@ export default async function HomePage() {
                             </Link>
                         </div>
                     </div>
-
-                    {/* 4. Recently Added (was Latest Properties) */}
-                    {properties.length > 0 && (
-                        <div className="mb-8">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                    {settings?.recentHeading || 'Recently Added'}
-                                </h2>
-                                <Link
-                                    href="/list"
-                                    className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
-                                >
-                                    View All →
-                                </Link>
-                            </div>
-                            <PropertySlider properties={properties} />
-                        </div>
-                    )}
 
                     {/* 5. WhatsApp + Call Us */}
                     <div className="mb-8">

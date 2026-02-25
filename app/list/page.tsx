@@ -5,7 +5,6 @@ import PropertyCard from '@/components/PropertyCard';
 import FilterSheet from '@/components/FilterSheet';
 import SearchBar from '@/components/SearchBar';
 import SortButton from '@/components/SortButton';
-import FloatingShortlistButton from '@/components/FloatingShortlistButton';
 import { DealType, UsageType } from '@/lib/types';
 
 interface ListPageProps {
@@ -268,9 +267,6 @@ export default async function ListPage({ searchParams }: ListPageProps) {
 
             {/* Filter Sheet */}
             <FilterSheet areasBySubtype={areasBySubtype} />
-
-            {/* Floating Shortlist Button */}
-            <FloatingShortlistButton />
         </main>
     );
 }
