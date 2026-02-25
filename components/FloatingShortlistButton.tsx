@@ -29,9 +29,9 @@ export default function FloatingShortlistButton({ propertyId }: FloatingShortlis
         <>
             <button
                 onClick={handleClick}
-                className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group ${isShortlisted
-                        ? 'bg-red-500 text-white hover:bg-red-600'
-                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-gray-700'
+                className={`fixed bottom-20 right-4 z-50 flex items-center gap-2 px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group ${isShortlisted
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-red-50 dark:hover:bg-gray-700'
                     }`}
                 title={isShortlisted ? 'Remove from shortlist' : 'Add to shortlist'}
             >
