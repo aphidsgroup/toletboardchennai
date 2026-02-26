@@ -45,7 +45,7 @@ export default function LoginPage() {
     return (
         <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
             <div className="w-full max-w-md">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>
                         <p className="text-gray-600 dark:text-gray-400">Sign in to view properties</p>
@@ -62,8 +62,8 @@ export default function LoginPage() {
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                 Phone Number
                             </label>
-                            <div className="flex">
-                                <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-300 font-medium">
+                            <div className="flex overflow-hidden rounded-xl">
+                                <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 font-medium flex-shrink-0">
                                     +91
                                 </span>
                                 <input
@@ -72,7 +72,7 @@ export default function LoginPage() {
                                     maxLength={10}
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    className="flex-1 min-w-0 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                                     placeholder="98765 43210"
                                 />
                             </div>

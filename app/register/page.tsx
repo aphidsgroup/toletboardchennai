@@ -44,7 +44,6 @@ export default function RegisterPage() {
             return;
         }
 
-        // Validate phone
         const clean = formData.phone.replace(/\D/g, '').replace(/^91/, '');
         if (clean.length !== 10) {
             setError('Please enter a valid 10-digit phone number');
@@ -70,7 +69,6 @@ export default function RegisterPage() {
                 return;
             }
 
-            // Move to WhatsApp step
             setStep(2);
         } catch {
             setError('Something went wrong. Please try again.');
@@ -95,7 +93,7 @@ export default function RegisterPage() {
                 }),
             });
         } catch {
-            // Non-critical — continue anyway
+            // Non-critical
         } finally {
             setSavingWa(false);
             router.push(redirectTo);
@@ -123,7 +121,6 @@ export default function RegisterPage() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">Get alerts when new properties are listed</p>
                         </div>
 
-                        {/* Same WhatsApp number? */}
                         <div className="mb-5">
                             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                                 Is your WhatsApp number the same as your registered number?
@@ -150,14 +147,13 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        {/* Enter different WhatsApp number */}
                         {whatsappSame === 'no' && (
                             <div className="mb-5">
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                     WhatsApp Number
                                 </label>
-                                <div className="flex">
-                                    <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                <div className="flex overflow-hidden rounded-xl">
+                                    <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 font-medium flex-shrink-0">
                                         +91
                                     </span>
                                     <input
@@ -166,14 +162,13 @@ export default function RegisterPage() {
                                         maxLength={10}
                                         value={whatsappNumber}
                                         onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
-                                        className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                        className="flex-1 min-w-0 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                         placeholder="98765 43210"
                                     />
                                 </div>
                             </div>
                         )}
 
-                        {/* Want updates? */}
                         {whatsappSame !== null && (
                             <div className="mb-6">
                                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -202,7 +197,6 @@ export default function RegisterPage() {
                             </div>
                         )}
 
-                        {/* Actions */}
                         <div className="space-y-3">
                             {wantsUpdates !== null && (
                                 <button
@@ -229,10 +223,38 @@ export default function RegisterPage() {
     return (
         <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-center justify-center px-4 py-12">
             <div className="w-full max-w-md">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-                    <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create Account</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Sign up to browse & shortlist properties</p>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8">
+                    {/* Persuasive Header */}
+                    <div className="text-center mb-6">
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            Your First Visit From Home Starts Here
+                        </h1>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                            We personally shoot <strong>free 360° virtual tours</strong> of every listed property so you can experience it from home before stepping out. Sign up to unlock full property views, get alerts for new listings matching your needs, and shortlist your favourites — all from your couch.
+                        </p>
+                    </div>
+
+                    {/* Why Sign Up - Value Props */}
+                    <div className="bg-primary-50/60 dark:bg-gray-700/50 rounded-xl p-4 mb-6">
+                        <p className="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-2.5">Why Sign Up?</p>
+                        <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                            <li className="flex items-start gap-2">
+                                <span className="flex-shrink-0">🏠</span>
+                                <span><strong>First Visit From Home</strong> — Walk through properties in 360° without travelling</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="flex-shrink-0">🎥</span>
+                                <span><strong>Free 360° Tours</strong> — We put real effort into shooting every property for you</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="flex-shrink-0">🔔</span>
+                                <span><strong>Personalized Alerts</strong> — Get notified when new listings match your requirements</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="flex-shrink-0">⭐</span>
+                                <span><strong>Shortlist & Compare</strong> — Save and compare properties in one place</span>
+                            </li>
+                        </ul>
                     </div>
 
                     {error && (
@@ -260,8 +282,8 @@ export default function RegisterPage() {
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                                 Phone Number *
                             </label>
-                            <div className="flex">
-                                <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-300 font-medium">
+                            <div className="flex overflow-hidden rounded-xl">
+                                <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 font-medium flex-shrink-0">
                                     +91
                                 </span>
                                 <input
@@ -270,7 +292,7 @@ export default function RegisterPage() {
                                     maxLength={10}
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
-                                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    className="flex-1 min-w-0 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                                     placeholder="98765 43210"
                                 />
                             </div>
@@ -304,6 +326,10 @@ export default function RegisterPage() {
                                 placeholder="••••••••"
                             />
                         </div>
+
+                        <p className="text-center text-xs text-gray-500 dark:text-gray-400 italic">
+                            Takes only 30 seconds!
+                        </p>
 
                         <button
                             type="submit"

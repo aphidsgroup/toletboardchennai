@@ -136,7 +136,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
     // Gate: require login to view property
     const session = await getSession();
     if (!session.isLoggedIn) {
-        redirect(`/login?redirect=/p/${encodeURIComponent(slug)}`);
+        redirect(`/register?redirect=/p/${encodeURIComponent(slug)}`);
     }
 
     const property = await getProperty(slug);
