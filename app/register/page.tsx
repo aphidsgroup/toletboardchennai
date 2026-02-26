@@ -1,20 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectTo = searchParams.get('redirect') || '/';
+
+    // Step 1: Registration form | Step 2: WhatsApp prompt
+    const [step, setStep] = useState<1 | 2>(1);
+
     const [formData, setFormData] = useState({
         name: '',
-        email: '',
         phone: '',
         password: '',
         confirmPassword: '',
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // WhatsApp step state
+    const [whatsappSame, setWhatsappSame] = useState<'yes' | 'no' | null>(null);
+    const [whatsappNumber, setWhatsappNumber] = useState('');
+    const [wantsUpdates, setWantsUpdates] = useState<boolean | null>(null);
+    const [savingWa, setSavingWa] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -33,14 +44,21 @@ export default function RegisterPage() {
             return;
         }
 
+        // Validate phone
+        const clean = formData.phone.replace(/\D/g, '').replace(/^91/, '');
+        if (clean.length !== 10) {
+            setError('Please enter a valid 10-digit phone number');
+            setLoading(false);
+            return;
+        }
+
         try {
             const res = await fetch('/api/auth/user/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: formData.name,
-                    email: formData.email,
-                    phone: formData.phone || undefined,
+                    phone: formData.phone,
                     password: formData.password,
                 }),
             });
@@ -52,13 +70,160 @@ export default function RegisterPage() {
                 return;
             }
 
-            router.push('/');
-            router.refresh();
+            // Move to WhatsApp step
+            setStep(2);
         } catch {
             setError('Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
+    }
+
+    async function handleWhatsappSave() {
+        setSavingWa(true);
+        try {
+            const waNumber = whatsappSame === 'yes'
+                ? formData.phone.replace(/\D/g, '').replace(/^91/, '')
+                : whatsappNumber.replace(/\D/g, '').replace(/^91/, '');
+
+            await fetch('/api/auth/user/register', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    whatsappNumber: waNumber || null,
+                    wantsWhatsappUpdates: wantsUpdates === true,
+                }),
+            });
+        } catch {
+            // Non-critical — continue anyway
+        } finally {
+            setSavingWa(false);
+            router.push(redirectTo);
+            router.refresh();
+        }
+    }
+
+    function handleSkipWhatsapp() {
+        router.push(redirectTo);
+        router.refresh();
+    }
+
+    if (step === 2) {
+        return (
+            <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-center justify-center px-4 py-12">
+                <div className="w-full max-w-md">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                </svg>
+                            </div>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Stay Updated on WhatsApp</h1>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Get alerts when new properties are listed</p>
+                        </div>
+
+                        {/* Same WhatsApp number? */}
+                        <div className="mb-5">
+                            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                                Is your WhatsApp number the same as your registered number?
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setWhatsappSame('yes')}
+                                    className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${whatsappSame === 'yes'
+                                        ? 'bg-green-500 text-white shadow-md'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                        }`}
+                                >
+                                    Yes, same number
+                                </button>
+                                <button
+                                    onClick={() => setWhatsappSame('no')}
+                                    className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${whatsappSame === 'no'
+                                        ? 'bg-green-500 text-white shadow-md'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                        }`}
+                                >
+                                    No, different
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Enter different WhatsApp number */}
+                        {whatsappSame === 'no' && (
+                            <div className="mb-5">
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                                    WhatsApp Number
+                                </label>
+                                <div className="flex">
+                                    <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                        +91
+                                    </span>
+                                    <input
+                                        type="tel"
+                                        required
+                                        maxLength={10}
+                                        value={whatsappNumber}
+                                        onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
+                                        className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                        placeholder="98765 43210"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Want updates? */}
+                        {whatsappSame !== null && (
+                            <div className="mb-6">
+                                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                                    Receive new property alerts on WhatsApp?
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setWantsUpdates(true)}
+                                        className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${wantsUpdates === true
+                                            ? 'bg-green-500 text-white shadow-md'
+                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                            }`}
+                                    >
+                                        Yes, notify me
+                                    </button>
+                                    <button
+                                        onClick={() => setWantsUpdates(false)}
+                                        className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${wantsUpdates === false
+                                            ? 'bg-gray-400 text-white shadow-md'
+                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                            }`}
+                                    >
+                                        No thanks
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="space-y-3">
+                            {wantsUpdates !== null && (
+                                <button
+                                    onClick={handleWhatsappSave}
+                                    disabled={savingWa || (whatsappSame === 'no' && whatsappNumber.length !== 10)}
+                                    className="w-full py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {savingWa ? 'Saving...' : 'Continue'}
+                                </button>
+                            )}
+                            <button
+                                onClick={handleSkipWhatsapp}
+                                className="w-full py-3 px-4 text-gray-500 dark:text-gray-400 font-medium text-sm hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                            >
+                                Skip & Continue Browsing →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
     }
 
     return (
@@ -67,7 +232,7 @@ export default function RegisterPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create Account</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Join us to save & shortlist properties</p>
+                        <p className="text-gray-600 dark:text-gray-400">Sign up to browse & shortlist properties</p>
                     </div>
 
                     {error && (
@@ -87,35 +252,28 @@ export default function RegisterPage() {
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                                placeholder="John Doe"
+                                placeholder="Your full name"
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                                Email *
+                                Phone Number *
                             </label>
-                            <input
-                                type="email"
-                                required
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                                placeholder="you@example.com"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                                Phone (optional)
-                            </label>
-                            <input
-                                type="tel"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                                placeholder="+91 98765 43210"
-                            />
+                            <div className="flex">
+                                <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                    +91
+                                </span>
+                                <input
+                                    type="tel"
+                                    required
+                                    maxLength={10}
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
+                                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    placeholder="98765 43210"
+                                />
+                            </div>
                         </div>
 
                         <div>
@@ -158,7 +316,7 @@ export default function RegisterPage() {
 
                     <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
                         Already have an account?{' '}
-                        <Link href="/login" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
+                        <Link href={`/login${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
                             Sign In
                         </Link>
                     </p>

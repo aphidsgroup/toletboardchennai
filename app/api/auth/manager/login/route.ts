@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         // Create session
         const session = await getSession();
         session.userId = manager.id;
-        session.email = manager.email;
+        session.phone = manager.email;
         session.name = manager.name;
         session.role = 'manager';
         session.isLoggedIn = true;

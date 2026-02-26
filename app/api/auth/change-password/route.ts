@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
         if (session.role === 'admin') {
             // Admin password change
-            const admin = await prisma.admin.findUnique({ where: { email: session.email } });
+            const admin = await prisma.admin.findUnique({ where: { id: session.userId } });
             if (!admin) {
                 return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
             }
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
             });
         } else if (session.role === 'user') {
             // User password change
-            const user = await prisma.user.findUnique({ where: { email: session.email } });
+            const user = await prisma.user.findUnique({ where: { phone: session.phone } });
             if (!user) {
                 return NextResponse.json({ error: 'User not found' }, { status: 404 });
             }

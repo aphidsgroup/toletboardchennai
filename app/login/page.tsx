@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
     const router = useRouter();
-    const [email, setEmail] = useState('');
+    const searchParams = useSearchParams();
+    const redirectTo = searchParams.get('redirect') || '/';
+
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -20,7 +23,7 @@ export default function LoginPage() {
             const res = await fetch('/api/auth/user/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ phone, password }),
             });
 
             const data = await res.json();
@@ -30,7 +33,7 @@ export default function LoginPage() {
                 return;
             }
 
-            router.push('/');
+            router.push(redirectTo);
             router.refresh();
         } catch {
             setError('Something went wrong. Please try again.');
@@ -45,7 +48,7 @@ export default function LoginPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
+                        <p className="text-gray-600 dark:text-gray-400">Sign in to view properties</p>
                     </div>
 
                     {error && (
@@ -57,16 +60,22 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                                Email
+                                Phone Number
                             </label>
-                            <input
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                                placeholder="you@example.com"
-                            />
+                            <div className="flex">
+                                <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                    +91
+                                </span>
+                                <input
+                                    type="tel"
+                                    required
+                                    maxLength={10}
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    placeholder="98765 43210"
+                                />
+                            </div>
                         </div>
 
                         <div>
@@ -94,7 +103,7 @@ export default function LoginPage() {
 
                     <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
                         Don&apos;t have an account?{' '}
-                        <Link href="/register" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
+                        <Link href={`/register${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
                             Sign Up
                         </Link>
                     </p>

@@ -9,7 +9,7 @@ interface HeaderProps {
 
 interface UserInfo {
     name: string;
-    email: string;
+    phone: string;
     role: 'user' | 'manager' | 'admin';
 }
 
@@ -83,7 +83,7 @@ export default function Header({ brandName = 'Tolet Board Chennai' }: HeaderProp
                                 {user && (
                                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
                                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user.name}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.role === 'user' ? `+91 ${user.phone}` : user.phone}</p>
                                     </div>
                                 )}
 

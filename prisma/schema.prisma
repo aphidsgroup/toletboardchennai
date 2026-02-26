@@ -102,13 +102,15 @@ model SiteSettings {
 }
 
 model User {
-  id           String      @id @default(cuid())
-  name         String
-  email        String      @unique
-  phone        String?
-  passwordHash String
-  shortlists   Shortlist[]
-  createdAt    DateTime    @default(now())
+  id                   String      @id @default(cuid())
+  name                 String
+  email                String?
+  phone                String      @unique
+  whatsappNumber       String?
+  wantsWhatsappUpdates Boolean     @default(false)
+  passwordHash         String
+  shortlists           Shortlist[]
+  createdAt            DateTime    @default(now())
 }
 
 model Manager {

@@ -14,7 +14,7 @@ export async function GET() {
         if (session.role === 'manager') {
             const manager = await prisma.manager.findUnique({
                 where: { id: session.userId },
-                select: { permissions: true, isActive: true },
+                select: { permissions: true, isActive: true, email: true },
             });
 
             if (!manager || !manager.isActive) {
@@ -31,17 +31,35 @@ export async function GET() {
             return NextResponse.json({
                 user: {
                     name: session.name,
-                    email: session.email,
+                    email: manager.email,
+                    phone: session.phone,
                     role: session.role,
                     permissions,
                 }
             });
         }
 
+        // For admin
+        if (session.role === 'admin') {
+            return NextResponse.json({
+                user: {
+                    name: session.name,
+                    phone: session.phone,
+                    role: session.role,
+                }
+            });
+        }
+
+        // For users — fetch phone from DB
+        const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { phone: true, name: true },
+        });
+
         return NextResponse.json({
             user: {
-                name: session.name,
-                email: session.email,
+                name: user?.name || session.name,
+                phone: user?.phone || session.phone,
                 role: session.role,
             }
         });

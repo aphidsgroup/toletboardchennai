@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import {
     formatPrice,
     formatSize,
@@ -130,6 +131,13 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
 
 export default async function PropertyPage({ params }: PropertyPageProps) {
     const { slug } = await params;
+
+    // Gate: require login to view property
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        redirect(`/login?redirect=/p/${encodeURIComponent(slug)}`);
+    }
+
     const property = await getProperty(slug);
     const [settings, similarProperties] = await Promise.all([
         getSiteSettings(),

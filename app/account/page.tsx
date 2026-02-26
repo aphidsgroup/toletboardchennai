@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function AccountPage() {
     const router = useRouter();
-    const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+    const [user, setUser] = useState<{ name: string; phone: string } | null>(null);
     const [loading, setLoading] = useState(true);
 
     // Password change state
@@ -96,11 +96,11 @@ export default function AccountPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                            {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                            {user.name?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{user.name}</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">+91 {user.phone}</p>
                         </div>
                     </div>
                 </div>
