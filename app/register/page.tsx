@@ -230,7 +230,7 @@ export default function RegisterPage() {
                             Your First Visit From Home Starts Here
                         </h1>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                            We personally shoot <strong>free 360° virtual tours</strong> of every listed property so you can experience it from home before stepping out. Sign up to unlock full property views, get alerts for new listings matching your needs, and shortlist your favourites — all from your couch.
+                            We personally shoot <strong>360° virtual tours</strong> of every listed property so you can experience it from home before stepping out. Sign up to unlock full property views, get alerts for new listings matching your needs, and shortlist your favourites — all from your couch.
                         </p>
                     </div>
 
@@ -244,7 +244,7 @@ export default function RegisterPage() {
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="flex-shrink-0">🎥</span>
-                                <span><strong>Free 360° Tours</strong> — We put real effort into shooting every property for you</span>
+                                <span><strong>360° Virtual Tours</strong> — We put real effort into shooting every property for you</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="flex-shrink-0">🔔</span>
