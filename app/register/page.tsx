@@ -229,9 +229,6 @@ export default function RegisterPage() {
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
                             Your First Visit From Home Starts Here
                         </h1>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                            We personally shoot <strong>360° virtual tours</strong> of every listed property so you can experience it from home before stepping out. Sign up to unlock full property views, get alerts for new listings matching your needs, and shortlist your favourites — all from your couch.
-                        </p>
                     </div>
 
                     {/* Why Sign Up - Value Props */}
