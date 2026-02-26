@@ -129,7 +129,7 @@ export default function LeadPopupForm({ popupTitle, popupSubtitle }: {
                                     <button
                                         key={type}
                                         type="button"
-                                        onClick={() => setFormData({ ...formData, lookingFor: type })}
+                                        onClick={() => setFormData({ ...formData, lookingFor: type, budgetRange: '' })}
                                         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${formData.lookingFor === type
                                             ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                                             : 'text-gray-500'
@@ -162,11 +162,24 @@ export default function LeadPopupForm({ popupTitle, popupSubtitle }: {
                                     className="px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500"
                                 >
                                     <option value="">Budget Range</option>
-                                    <option value="Under ₹10K">Under ₹10K</option>
-                                    <option value="₹10K - ₹25K">₹10K - ₹25K</option>
-                                    <option value="₹25K - ₹50K">₹25K - ₹50K</option>
-                                    <option value="₹50K - ₹1L">₹50K - ₹1L</option>
-                                    <option value="Above ₹1L">Above ₹1L</option>
+                                    {formData.lookingFor === 'lease' ? (
+                                        <>
+                                            <option value="Under ₹5L">Under ₹5L</option>
+                                            <option value="₹5L - ₹10L">₹5L - ₹10L</option>
+                                            <option value="₹10L - ₹25L">₹10L - ₹25L</option>
+                                            <option value="₹25L - ₹50L">₹25L - ₹50L</option>
+                                            <option value="₹50L - ₹1Cr">₹50L - ₹1Cr</option>
+                                            <option value="Above ₹1Cr">Above ₹1Cr</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="Under ₹10K">Under ₹10K</option>
+                                            <option value="₹10K - ₹25K">₹10K - ₹25K</option>
+                                            <option value="₹25K - ₹50K">₹25K - ₹50K</option>
+                                            <option value="₹50K - ₹1L">₹50K - ₹1L</option>
+                                            <option value="Above ₹1L">Above ₹1L</option>
+                                        </>
+                                    )}
                                 </select>
                                 <input
                                     type="text"
