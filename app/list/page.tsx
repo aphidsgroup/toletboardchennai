@@ -195,7 +195,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
                     {/* Usage Type Toggle */}
                     <div className="flex gap-2">
                         <Link
-                            href={`/list${params.deal ? `?deal=${params.deal}` : ''}${params.use === 'residential' ? '' : '&use=residential'}`}
+                            href={`/list?${params.deal ? `deal=${params.deal}&` : ''}${params.use === 'residential' ? '' : 'use=residential'}`}
                             className={`flex-1 px-4 py-2.5 rounded-xl font-semibold text-center transition-all duration-300 ${params.use === 'residential'
                                 ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 border-2 border-primary-500'
                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -204,7 +204,7 @@ export default async function ListPage({ searchParams }: ListPageProps) {
                             Residential
                         </Link>
                         <Link
-                            href={`/list${params.deal ? `?deal=${params.deal}` : ''}${params.use === 'commercial' ? '' : '&use=commercial'}`}
+                            href={`/list?${params.deal ? `deal=${params.deal}&` : ''}${params.use === 'commercial' ? '' : 'use=commercial'}`}
                             className={`flex-1 px-4 py-2.5 rounded-xl font-semibold text-center transition-all duration-300 ${params.use === 'commercial'
                                 ? 'bg-accent-100 dark:bg-accent-900 text-accent-700 dark:text-accent-300 border-2 border-accent-500'
                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
