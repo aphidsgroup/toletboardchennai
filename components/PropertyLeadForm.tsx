@@ -108,8 +108,8 @@ export default function PropertyLeadForm({ propertyId, propertyTitle }: Property
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
                     placeholder="Your Name"
                 />
-                <div className="flex">
-                    <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-300 font-medium">
+                <div className="flex overflow-hidden rounded-xl">
+                    <span className="inline-flex items-center px-3 bg-gray-100 dark:bg-gray-600 border border-r-0 border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 font-medium flex-shrink-0">
                         +91
                     </span>
                     <input
@@ -118,14 +118,14 @@ export default function PropertyLeadForm({ propertyId, propertyTitle }: Property
                         maxLength={10}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
+                        className="flex-1 min-w-0 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
                         placeholder="98765 43210"
                     />
                 </div>
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="w-full py-3 px-4 bg-gray-900 hover:bg-black text-primary-400 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                     {loading ? 'Submitting...' : '📞 Request Callback'}
                 </button>

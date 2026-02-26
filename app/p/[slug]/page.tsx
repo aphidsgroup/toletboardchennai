@@ -547,10 +547,12 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                     {orderedSections.map((sectionId: string) => renderSection(sectionId))}
 
                     {/* Lead Collection Form */}
-                    <PropertyLeadForm propertyId={property.id} propertyTitle={property.title} />
+                    <div className="mt-8">
+                        <PropertyLeadForm propertyId={property.id} propertyTitle={property.title} />
+                    </div>
 
                     {/* Contact Info */}
-                    <div className="bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 text-center">
+                    <div className="mt-8 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 text-center">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                             Interested in this property?
                         </h3>
@@ -564,7 +566,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 
                     {/* People Also Viewed */}
                     {similarProperties.length > 0 && (
-                        <div className="mt-2">
+                        <div className="mt-8">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                                 People Also Viewed
                             </h2>
