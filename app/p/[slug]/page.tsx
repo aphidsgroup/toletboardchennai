@@ -25,6 +25,7 @@ import TeleportMeEmbed from '@/components/TeleportMeEmbed';
 import FacilitiesAndLocations from '@/components/FacilitiesAndLocations';
 import FloatingShortlistButton from '@/components/FloatingShortlistButton';
 import PropertySlider from '@/components/PropertySlider';
+import PropertyLeadForm from '@/components/PropertyLeadForm';
 
 interface PropertyPageProps {
     params: Promise<{
@@ -544,6 +545,9 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 
                     {/* Dynamic Sections - rendered in order */}
                     {orderedSections.map((sectionId: string) => renderSection(sectionId))}
+
+                    {/* Lead Collection Form */}
+                    <PropertyLeadForm propertyId={property.id} propertyTitle={property.title} />
 
                     {/* Contact Info */}
                     <div className="bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 text-center">
