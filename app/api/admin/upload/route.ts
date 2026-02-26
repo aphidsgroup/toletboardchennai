@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthenticated } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { supabaseAdmin, STORAGE_BUCKET } from '@/lib/supabase';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -29,7 +29,8 @@ async function ensureBucket() {
 }
 
 export async function POST(request: NextRequest) {
-    if (!(await isAuthenticated())) {
+    const session = await getSession();
+    if (!session.isLoggedIn || session.role !== 'admin') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

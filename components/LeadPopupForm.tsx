@@ -28,7 +28,7 @@ export default function LeadPopupForm({ popupTitle, popupSubtitle }: {
         const timer = setTimeout(() => {
             setShow(true);
             localStorage.setItem('lead_popup_shown', 'true');
-        }, 10000); // 10 seconds
+        }, 5000); // 5 seconds
 
         return () => clearTimeout(timer);
     }, []);

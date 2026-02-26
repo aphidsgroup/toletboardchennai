@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { isAuthenticated } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 export async function GET() {
-    if (!(await isAuthenticated())) {
+    const session = await getSession();
+    if (!session.isLoggedIn || session.role !== 'admin') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,7 +24,8 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-    if (!(await isAuthenticated())) {
+    const session = await getSession();
+    if (!session.isLoggedIn || session.role !== 'admin') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { isAuthenticated } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { generateSlug } from '@/lib/utils';
 
 export async function GET(request: Request) {
-    if (!(await isAuthenticated())) {
+    const session = await getSession();
+    if (!session.isLoggedIn || session.role !== 'admin') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -33,7 +34,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    if (!(await isAuthenticated())) {
+    const session = await getSession();
+    if (!session.isLoggedIn || session.role !== 'admin') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
