@@ -176,11 +176,13 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 
     // JSON-LD Structured Data for AI/Search engines
     const images = property.images ? JSON.parse(property.images) : [];
+    const bhkLabel = property.bedrooms ? `${property.bedrooms} BHK` : '';
+    const propertyTypeLabel = property.propertySubtype || property.usageType;
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'RealEstateListing',
         name: property.title,
-        description: `${property.title} available for ${property.dealType} in ${property.areaName}, ${property.city}`,
+        description: `${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} available for ${property.dealType} in ${property.areaName}, ${property.city}. ${formatSize(property.sizeSqft)}, ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}.${property.tourEmbedUrl ? ' 360° virtual tour available.' : ''}`,
         url: propertyUrl,
         datePosted: property.createdAt.toISOString(),
         ...(images.length > 0 && { image: images }),
@@ -189,6 +191,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
             price: property.priceInr,
             priceCurrency: 'INR',
             availability: 'https://schema.org/InStock',
+            ...(property.isNegotiable && { priceSpecification: { '@type': 'PriceSpecification', price: property.priceInr, priceCurrency: 'INR', description: 'Negotiable' } }),
         },
         address: {
             '@type': 'PostalAddress',
@@ -203,12 +206,45 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         },
         ...(property.bedrooms && { numberOfRooms: property.bedrooms }),
         ...(property.bathrooms && { numberOfBathroomsTotal: property.bathrooms }),
+        ...(property.propertySubtype && { propertyType: property.propertySubtype }),
         ...(property.tourEmbedUrl && {
             virtualTour: {
                 '@type': 'VirtualLocation',
                 url: property.tourEmbedUrl,
             },
         }),
+    };
+
+    // FAQ Schema for AEO (Answer Engine Optimization)
+    const faqJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+            {
+                '@type': 'Question',
+                name: `What types of properties are available for ${property.dealType} in ${property.areaName}, Chennai?`,
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: `${property.areaName} in Chennai offers a variety of properties for ${property.dealType} including apartments, independent houses, and commercial spaces. This listing is a ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} spanning ${formatSize(property.sizeSqft)} at ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}.`,
+                },
+            },
+            {
+                '@type': 'Question',
+                name: `What is the average ${property.dealType} price in ${property.areaName}, Chennai?`,
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: `${property.dealType === 'rent' ? 'Rental' : 'Lease'} prices in ${property.areaName} vary based on property size and type. This ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} is ${property.dealType === 'rent' ? 'available at' : 'listed for'} ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}${property.isNegotiable ? ' (negotiable)' : ''}. Browse more listings on Tolet Board Chennai to compare prices.`,
+                },
+            },
+            {
+                '@type': 'Question',
+                name: `Is ${property.areaName} well-connected to public transport and IT corridors in Chennai?`,
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: `${property.areaName} is a well-established locality in Chennai with good connectivity to major IT corridors, bus routes, and metro stations. Properties here are popular among families and professionals. Explore this listing with a 360° virtual tour on Tolet Board Chennai.`,
+                },
+            },
+        ],
     };
 
     // Helper to get section name
@@ -309,7 +345,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                             {(() => {
                                 const isTeleportMe = property.tourEmbedUrl!.includes('tours.realprop360.in') || property.tourEmbedUrl!.includes('teleportme');
                                 return isTeleportMe ? (
-                                    <TeleportMeEmbed tourUrl={property.tourEmbedUrl!} />
+                                    <TeleportMeEmbed tourUrl={property.tourEmbedUrl!} propertyTitle={property.title} />
                                 ) : (
                                     <iframe
                                         src={property.tourEmbedUrl!}
@@ -500,6 +536,10 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+            />
 
             <main className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
                 {/* Header */}
@@ -545,6 +585,72 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 
                     {/* Dynamic Sections - rendered in order */}
                     {orderedSections.map((sectionId: string) => renderSection(sectionId))}
+
+                    {/* Property Highlights */}
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Property Highlights</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                            <ul className="space-y-3">
+                                <li className="flex items-start gap-3">
+                                    <svg className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                    <span className="text-gray-700 dark:text-gray-300">{bhkLabel ? `Spacious ${bhkLabel} ` : ''}{propertyTypeLabel} in {property.areaName}, {formatSize(property.sizeSqft)}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <svg className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                    <span className="text-gray-700 dark:text-gray-300">Available for {property.dealType === 'rent' ? 'Rent' : 'Lease'} at {formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/month' : ''}{property.isNegotiable ? ' (Negotiable)' : ''}</span>
+                                </li>
+                                {property.tourEmbedUrl && (
+                                    <li className="flex items-start gap-3">
+                                        <svg className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                        <span className="text-gray-700 dark:text-gray-300">360° Virtual Tour available — explore this property from home</span>
+                                    </li>
+                                )}
+                                {property.bedrooms && property.bathrooms && (
+                                    <li className="flex items-start gap-3">
+                                        <svg className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                        <span className="text-gray-700 dark:text-gray-300">{property.bedrooms} Bedrooms, {property.bathrooms} Bathrooms — ideal for families</span>
+                                    </li>
+                                )}
+                                {property.furnishing && (
+                                    <li className="flex items-start gap-3">
+                                        <svg className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                        <span className="text-gray-700 dark:text-gray-300">{property.furnishing} property — move-in ready</span>
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Neighborhood FAQ — AEO Content */}
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md divide-y divide-gray-100 dark:divide-gray-700">
+                            <div className="p-5">
+                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                                    What types of properties are available for {property.dealType} in {property.areaName}, Chennai?
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    {property.areaName} in Chennai offers a variety of properties for {property.dealType} including apartments, independent houses, and commercial spaces. This listing is a {bhkLabel ? bhkLabel + ' ' : ''}{propertyTypeLabel} spanning {formatSize(property.sizeSqft)} at {formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/month' : ''}.
+                                </p>
+                            </div>
+                            <div className="p-5">
+                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                                    What is the average {property.dealType} price in {property.areaName}, Chennai?
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    {property.dealType === 'rent' ? 'Rental' : 'Lease'} prices in {property.areaName} vary based on property size and type. This {bhkLabel ? bhkLabel + ' ' : ''}{propertyTypeLabel} is {property.dealType === 'rent' ? 'available at' : 'listed for'} {formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/month' : ''}{property.isNegotiable ? ' (negotiable)' : ''}. Browse more listings on Tolet Board Chennai for comparisons.
+                                </p>
+                            </div>
+                            <div className="p-5">
+                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                                    Is {property.areaName} well-connected to public transport and IT corridors in Chennai?
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    {property.areaName} is a well-established locality in Chennai with good connectivity to major IT corridors, bus routes, and metro stations. Properties here are popular among families and professionals. Explore this listing with a 360° virtual tour.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Lead Collection Form */}
                     <div className="mt-8">

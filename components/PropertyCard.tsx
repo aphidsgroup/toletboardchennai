@@ -35,8 +35,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 <div className="relative w-full h-48 overflow-hidden bg-gray-200 dark:bg-gray-700">
                     <img
                         src={mainImage}
-                        alt={property.title}
+                        alt={`${property.bedrooms ? property.bedrooms + ' BHK ' : ''}${property.usageType} for ${property.dealType} in ${property.areaName} - ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/mo' : ''}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
                     />
                     <div className="absolute top-3 left-3">
                         <ShortlistButton propertyId={property.id} />

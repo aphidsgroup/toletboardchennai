@@ -99,8 +99,9 @@ export default function PropertySlider({ properties }: PropertySliderProps) {
                                 <div className="relative w-full h-40 overflow-hidden bg-gray-200 dark:bg-gray-700">
                                     <img
                                         src={mainImage}
-                                        alt={property.title}
+                                        alt={`${property.bedrooms ? property.bedrooms + ' BHK ' : ''}${property.usageType} for ${property.dealType} in ${property.areaName}`}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        loading="lazy"
                                     />
                                     <div className="absolute top-2 right-2 flex gap-1.5">
                                         <span className="px-2 py-0.5 bg-primary-600/90 backdrop-blur-sm text-white text-[10px] font-bold rounded-full uppercase">
