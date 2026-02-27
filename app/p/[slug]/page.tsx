@@ -687,7 +687,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 
                     {/* Service Ecosystem — Rental Agreement & Packers */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                        <a href="#" className="group block p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all">
+                        <a href={`https://wa.me/${(settings?.whatsappNumber || '+919876543210').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi, I need an 11-Month Rental Agreement for: ${property.title} (${property.areaName}). Link: ${propertyUrl}`)}`} target="_blank" rel="noopener noreferrer" className="group block p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all">
                             <div className="flex items-start gap-3">
                                 <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/40 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -700,7 +700,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                                 </div>
                             </div>
                         </a>
-                        <a href="#" className="group block p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 hover:shadow-md transition-all">
+                        <a href={`https://wa.me/${(settings?.whatsappNumber || '+919876543210').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi, I need Packers & Movers service for: ${property.title} (${property.areaName}). Link: ${propertyUrl}`)}`} target="_blank" rel="noopener noreferrer" className="group block p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 hover:shadow-md transition-all">
                             <div className="flex items-start gap-3">
                                 <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/40 rounded-xl flex items-center justify-center flex-shrink-0">
                                     <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
