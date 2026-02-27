@@ -68,13 +68,13 @@ export const metadata: Metadata = {
         title: "Tolet Board Chennai - 360° Virtual Property Tours",
         description: "Find your perfect property in Chennai with immersive 360° virtual tours. Rent & Lease options for Residential and Commercial properties.",
         siteName: "Tolet Board Chennai",
-        images: [{ url: `${siteUrl}/logo.png`, width: 512, height: 512, alt: "Tolet Board Chennai" }],
+        images: [{ url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: "Tolet Board Chennai - 360° Virtual Property Tours" }],
     },
     twitter: {
         card: 'summary_large_image',
         title: "Tolet Board Chennai - 360° Virtual Property Tours",
         description: "Find your perfect property in Chennai with immersive 360° virtual tours.",
-        images: [`${siteUrl}/logo.png`],
+        images: [`${siteUrl}/og-image.png`],
     },
     alternates: {
         canonical: siteUrl,
