@@ -26,6 +26,18 @@ interface User {
     shortlists: { id: string; propertyId: string; property: { title: string; slug: string } }[];
 }
 
+interface PropertyItem {
+    id: string;
+    title: string;
+    slug: string;
+    areaName: string;
+    dealType: string;
+    usageType: string;
+    priceInr: number;
+    isPublished: boolean;
+    createdAt: string;
+}
+
 interface Permissions {
     viewLeads: boolean;
     viewUsers: boolean;
@@ -36,8 +48,9 @@ export default function ManagerDashboard() {
     const router = useRouter();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [users, setUsers] = useState<User[]>([]);
+    const [properties, setProperties] = useState<PropertyItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'leads' | 'users'>('leads');
+    const [tab, setTab] = useState<'leads' | 'users' | 'properties'>('leads');
     const [authorized, setAuthorized] = useState(true);
     const [permissions, setPermissions] = useState<Permissions>({
         viewLeads: true,
@@ -80,10 +93,17 @@ export default function ManagerDashboard() {
                     );
                 }
 
+                if (perms.viewProperties) {
+                    fetches.push(
+                        fetch('/api/manager/properties').then(r => r.json()).then(d => setProperties(d.properties || []))
+                    );
+                }
+
                 Promise.all(fetches).then(() => setLoading(false));
 
                 // Set default tab to first permitted
                 if (!perms.viewLeads && perms.viewUsers) setTab('users');
+                else if (!perms.viewLeads && !perms.viewUsers && perms.viewProperties) setTab('properties');
             })
             .catch(() => {
                 setAuthorized(false);
@@ -99,7 +119,7 @@ export default function ManagerDashboard() {
         );
     }
 
-    const noAccess = !permissions.viewLeads && !permissions.viewUsers;
+    const noAccess = !permissions.viewLeads && !permissions.viewUsers && !permissions.viewProperties;
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -138,6 +158,17 @@ export default function ManagerDashboard() {
                                         }`}
                                 >
                                     Users ({users.length})
+                                </button>
+                            )}
+                            {permissions.viewProperties && (
+                                <button
+                                    onClick={() => setTab('properties')}
+                                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${tab === 'properties'
+                                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                        : 'text-gray-500 dark:text-gray-400'
+                                        }`}
+                                >
+                                    Properties ({properties.length})
                                 </button>
                             )}
                         </div>
@@ -243,6 +274,74 @@ export default function ManagerDashboard() {
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                                                             {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Properties Tab */}
+                        {tab === 'properties' && permissions.viewProperties && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden">
+                                {properties.length === 0 ? (
+                                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                                        No properties found
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-gray-50 dark:bg-gray-750">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Property</th>
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Area</th>
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                                {properties.map((prop) => (
+                                                    <tr key={prop.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                                        <td className="px-4 py-3">
+                                                            <div className="font-medium text-gray-900 dark:text-white">{prop.title}</div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {new Date(prop.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{prop.areaName}</td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${prop.dealType === 'rent'
+                                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                                    : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                                                                }`}>
+                                                                {prop.dealType}
+                                                            </span>
+                                                            <span className="ml-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                                                {prop.usageType}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${prop.isPublished
+                                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                                    : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                                }`}>
+                                                                {prop.isPublished ? 'Published' : 'Draft'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <a
+                                                                href={`/manager/properties/${prop.id}/edit`}
+                                                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-xs font-semibold rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors"
+                                                            >
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                                Edit
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 ))}

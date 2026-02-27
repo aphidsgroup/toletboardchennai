@@ -23,6 +23,7 @@ import {
 import ContactBar from '@/components/ContactBar';
 import TeleportMeEmbed from '@/components/TeleportMeEmbed';
 import FacilitiesAndLocations from '@/components/FacilitiesAndLocations';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import FloatingShortlistButton from '@/components/FloatingShortlistButton';
 import PropertySlider from '@/components/PropertySlider';
 import PropertyLeadForm from '@/components/PropertyLeadForm';
@@ -157,6 +158,10 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
     const sectionOrder = parseSectionOrder(property.sectionOrder);
     const sectionNameOverrides = parseSectionNames((property as any).sectionNames);
 
+    // Parse custom highlights & FAQ (admin overrides)
+    const customHighlights: { label: string; value: string }[] = property.customHighlights ? JSON.parse(property.customHighlights) : [];
+    const customFaqs: { q: string; a: string }[] = property.customFaqs ? JSON.parse(property.customFaqs) : [];
+
     // Merge default names with overrides
     const sectionNames: SectionNames = { ...DEFAULT_SECTION_NAMES, ...sectionNameOverrides };
 
@@ -215,36 +220,37 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         }),
     };
 
+    // Auto-generated FAQ items (used as fallback)
+    const autoFaqs = [
+        {
+            q: `What types of properties are available for ${property.dealType} in ${property.areaName}, Chennai?`,
+            a: `${property.areaName} in Chennai offers a variety of properties for ${property.dealType} including apartments, independent houses, and commercial spaces. This listing is a ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} spanning ${formatSize(property.sizeSqft)} at ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}.`,
+        },
+        {
+            q: `What is the average ${property.dealType} price in ${property.areaName}, Chennai?`,
+            a: `${property.dealType === 'rent' ? 'Rental' : 'Lease'} prices in ${property.areaName} vary based on property size and type. This ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} is ${property.dealType === 'rent' ? 'available at' : 'listed for'} ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}${property.isNegotiable ? ' (negotiable)' : ''}. Browse more listings on Tolet Board Chennai to compare prices.`,
+        },
+        {
+            q: `Is ${property.areaName} well-connected to public transport and IT corridors in Chennai?`,
+            a: `${property.areaName} is a well-established locality in Chennai with good connectivity to major IT corridors, bus routes, and metro stations. Properties here are popular among families and professionals. Explore this listing with a 360° virtual tour on Tolet Board Chennai.`,
+        },
+    ];
+
+    // Use custom FAQs if available, otherwise auto-generated
+    const activeFaqs = customFaqs.length > 0 ? customFaqs : autoFaqs;
+
     // FAQ Schema for AEO (Answer Engine Optimization)
     const faqJsonLd = {
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
-        mainEntity: [
-            {
-                '@type': 'Question',
-                name: `What types of properties are available for ${property.dealType} in ${property.areaName}, Chennai?`,
-                acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: `${property.areaName} in Chennai offers a variety of properties for ${property.dealType} including apartments, independent houses, and commercial spaces. This listing is a ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} spanning ${formatSize(property.sizeSqft)} at ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}.`,
-                },
+        mainEntity: activeFaqs.map(faq => ({
+            '@type': 'Question',
+            name: faq.q,
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: faq.a,
             },
-            {
-                '@type': 'Question',
-                name: `What is the average ${property.dealType} price in ${property.areaName}, Chennai?`,
-                acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: `${property.dealType === 'rent' ? 'Rental' : 'Lease'} prices in ${property.areaName} vary based on property size and type. This ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} is ${property.dealType === 'rent' ? 'available at' : 'listed for'} ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}${property.isNegotiable ? ' (negotiable)' : ''}. Browse more listings on Tolet Board Chennai to compare prices.`,
-                },
-            },
-            {
-                '@type': 'Question',
-                name: `Is ${property.areaName} well-connected to public transport and IT corridors in Chennai?`,
-                acceptedAnswer: {
-                    '@type': 'Answer',
-                    text: `${property.areaName} is a well-established locality in Chennai with good connectivity to major IT corridors, bus routes, and metro stations. Properties here are popular among families and professionals. Explore this listing with a 360Â° virtual tour on Tolet Board Chennai.`,
-                },
-            },
-        ],
+        })),
     };
 
     // Helper to get section name
@@ -581,111 +587,132 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                                 {property.propertySubtype}
                             </p>
                         )}
+                        {property.isVerified && (
+                            <div className="mt-2">
+                                <VerifiedBadge size="md" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Dynamic Sections - rendered in order */}
                     {orderedSections.map((sectionId: string) => renderSection(sectionId))}
 
 
-                    {/* Property Highlights â€” Modern Card Grid */}
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <span className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                            </span>
+                    {/* Property Highlights — Minimal Clean UI */}
+                    <div className="mb-10">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 tracking-tight">
                             Property Highlights
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
-                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{bhkLabel ? `${bhkLabel} ` : ''}{propertyTypeLabel}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{property.areaName} Â· {formatSize(property.sizeSqft)}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
-                                <div className="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/month' : ''}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{property.dealType === 'rent' ? 'Rent' : 'Lease'}{property.isNegotiable ? ' Â· Negotiable' : ''}</p>
-                                </div>
-                            </div>
-                            {property.tourEmbedUrl && (
-                                <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
-                                    <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" /></svg>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-0">
+                            {customHighlights.length > 0 ? (
+                                customHighlights.map((h, index) => (
+                                    <div key={index} className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                                        <div className="w-1 h-8 rounded-full bg-primary-500 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">{h.label}</p>
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{h.value}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">360Â° Virtual Tour</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Explore from home</p>
+                                ))
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                                        <div className="w-1 h-8 rounded-full bg-blue-500 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">Property Type</p>
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{bhkLabel ? `${bhkLabel} ` : ''}{propertyTypeLabel} · {formatSize(property.sizeSqft)}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                            {property.bedrooms && property.bathrooms && (
-                                <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
-                                    <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                    <div className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                                        <div className="w-1 h-8 rounded-full bg-emerald-500 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">{property.dealType === 'rent' ? 'Rent' : 'Lease'}</p>
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{formatPrice(property.priceInr)}{property.dealType === 'rent' ? '/month' : ''}{property.isNegotiable ? ' · Negotiable' : ''}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{property.bedrooms} Bed Â· {property.bathrooms} Bath</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Ideal for families</p>
-                                    </div>
-                                </div>
-                            )}
-                            {property.furnishing && (
-                                <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
-                                    <div className="w-10 h-10 bg-rose-50 dark:bg-rose-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{property.furnishing}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Move-in ready</p>
-                                    </div>
-                                </div>
+                                    {property.bedrooms && property.bathrooms && (
+                                        <div className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                                            <div className="w-1 h-8 rounded-full bg-amber-500 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">Configuration</p>
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{property.bedrooms} Bed · {property.bathrooms} Bath</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {property.furnishing && (
+                                        <div className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                                            <div className="w-1 h-8 rounded-full bg-rose-500 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">Furnishing</p>
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{property.furnishing}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {property.tourEmbedUrl && (
+                                        <div className="flex items-center gap-3 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                                            <div className="w-1 h-8 rounded-full bg-purple-500 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">Virtual Tour</p>
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">360° Tour Available</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
 
-                    {/* Neighborhood FAQ â€” Accordion */}
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <span className="w-8 h-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>
-                            </span>
+                    {/* FAQ — Minimal Clean Accordion */}
+                    <div className="mb-10">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 tracking-tight">
                             Frequently Asked Questions
                         </h2>
-                        <div className="space-y-3">
-                            {[
-                                {
-                                    q: `What types of properties are available for ${property.dealType} in ${property.areaName}, Chennai?`,
-                                    a: `${property.areaName} in Chennai offers a variety of properties for ${property.dealType} including apartments, independent houses, and commercial spaces. This listing is a ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} spanning ${formatSize(property.sizeSqft)} at ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}.`,
-                                },
-                                {
-                                    q: `What is the average ${property.dealType} price in ${property.areaName}, Chennai?`,
-                                    a: `${property.dealType === 'rent' ? 'Rental' : 'Lease'} prices in ${property.areaName} vary based on property size and type. This ${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} is ${property.dealType === 'rent' ? 'available at' : 'listed for'} ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}${property.isNegotiable ? ' (negotiable)' : ''}. Browse more listings on Tolet Board Chennai for comparisons.`,
-                                },
-                                {
-                                    q: `Is ${property.areaName} well-connected to public transport and IT corridors in Chennai?`,
-                                    a: `${property.areaName} is a well-established locality in Chennai with good connectivity to major IT corridors, bus routes, and metro stations. Properties here are popular among families and professionals. Explore this listing with a 360Â° virtual tour.`,
-                                },
-                            ].map((faq, index) => (
-                                <details key={index} className="group bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                                    <summary className="flex items-center justify-between cursor-pointer p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors list-none [&::-webkit-details-marker]:hidden">
-                                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm pr-4">{faq.q}</h3>
-                                        <svg className="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
+                        <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                            {activeFaqs.map((faq, index) => (
+                                <details key={index} className="group py-4">
+                                    <summary className="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                                        <h3 className="text-sm font-medium text-gray-900 dark:text-white pr-6 leading-relaxed">{faq.q}</h3>
+                                        <span className="text-xl font-light text-gray-400 dark:text-gray-500 flex-shrink-0 w-6 h-6 flex items-center justify-center transition-transform duration-200">
+                                            <span className="group-open:hidden">+</span>
+                                            <span className="hidden group-open:inline">&minus;</span>
+                                        </span>
                                     </summary>
-                                    <div className="px-4 pb-4 pt-0">
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{faq.a}</p>
+                                    <div className="pt-2 pr-8">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{faq.a}</p>
                                     </div>
                                 </details>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Service Ecosystem — Rental Agreement & Packers */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                        <a href="#" className="group block p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Need a Rental Agreement?</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Get an 11-Month Digital Draft →</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="#" className="group block p-5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 hover:shadow-md transition-all">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Hassle-Free Move</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Compare Packers & Movers in Chennai →</p>
+                                </div>
+                            </div>
+                        </a>
                     </div>
 
                     {/* Lead Collection Form */}

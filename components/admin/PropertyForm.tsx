@@ -29,9 +29,11 @@ import { uploadImageDirect } from '@/lib/supabase-browser';
 interface PropertyFormProps {
     property?: Property;
     mode: 'create' | 'edit';
+    apiBasePath?: string;    // e.g., '/api/manager/properties' — defaults to '/api/admin/properties'
+    redirectPath?: string;   // e.g., '/manager' — defaults to '/admin/properties'
 }
 
-export default function PropertyForm({ property, mode }: PropertyFormProps) {
+export default function PropertyForm({ property, mode, apiBasePath = '/api/admin/properties', redirectPath = '/admin/properties' }: PropertyFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
@@ -73,6 +75,14 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
         images: property?.images ? JSON.parse(property.images) : [],
         isPublished: property?.isPublished || false,
         isFeatured: property?.isFeatured || false,
+        isVerified: property?.isVerified || false,
+        isBachelorFriendly: property?.isBachelorFriendly || false,
+        isPetFriendly: property?.isPetFriendly || false,
+        isVegetarianOnly: property?.isVegetarianOnly || false,
+
+        // Editable Highlights & FAQ
+        customHighlights: property?.customHighlights ? JSON.parse(property.customHighlights) : [],
+        customFaqs: property?.customFaqs ? JSON.parse(property.customFaqs) : [],
     });
 
 
@@ -112,11 +122,15 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
                 sectionNames: stringifySectionNames(formData.sectionNames),
 
                 images: JSON.stringify(formData.images),
+
+                // Editable Highlights & FAQ
+                customHighlights: formData.customHighlights.length > 0 ? JSON.stringify(formData.customHighlights) : null,
+                customFaqs: formData.customFaqs.length > 0 ? JSON.stringify(formData.customFaqs) : null,
             };
 
             const url = mode === 'create'
-                ? '/api/admin/properties'
-                : `/api/admin/properties/${property!.id}`;
+                ? apiBasePath
+                : `${apiBasePath}/${property!.id}`;
 
             const method = mode === 'create' ? 'POST' : 'PUT';
 
@@ -128,7 +142,7 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
 
             if (!res.ok) throw new Error('Failed to save property');
 
-            router.push('/admin/properties');
+            router.push(redirectPath);
             router.refresh();
         } catch (error) {
             console.error('Error saving property:', error);
@@ -1202,6 +1216,151 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
                 )}
             </div>
 
+            {/* Property Highlights Editor */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Property Highlights</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Auto-generated from property data. Add custom highlights to override or supplement.</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, customHighlights: [...prev.customHighlights, { label: '', value: '' }] }))}
+                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                    >
+                        + Add Highlight
+                    </button>
+                </div>
+
+                {formData.customHighlights.length === 0 ? (
+                    <div className="text-center py-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                        <p className="text-gray-500 dark:text-gray-400">Using auto-generated highlights (size, price, rooms, etc.)</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Click "+ Add Highlight" to add custom highlights that will replace the auto-generated ones</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {formData.customHighlights.map((h: { label: string; value: string }, index: number) => (
+                            <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <div className="flex-1 grid grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Label (e.g., Property Type)"
+                                        value={h.label}
+                                        onChange={(e) => {
+                                            const updated = [...formData.customHighlights];
+                                            updated[index] = { ...updated[index], label: e.target.value };
+                                            setFormData(prev => ({ ...prev, customHighlights: updated }));
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Value (e.g., 3 BHK Apartment)"
+                                        value={h.value}
+                                        onChange={(e) => {
+                                            const updated = [...formData.customHighlights];
+                                            updated[index] = { ...updated[index], value: e.target.value };
+                                            setFormData(prev => ({ ...prev, customHighlights: updated }));
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const updated = formData.customHighlights.filter((_: any, i: number) => i !== index);
+                                        setFormData(prev => ({ ...prev, customHighlights: updated }));
+                                    }}
+                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, customHighlights: [] }))}
+                            className="text-sm text-gray-500 hover:text-red-500 transition-colors"
+                        >
+                            Clear all &amp; use auto-generated
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* FAQ Editor */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Frequently Asked Questions</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Auto-generated from property data. Add custom FAQs to override or supplement.</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, customFaqs: [...prev.customFaqs, { q: '', a: '' }] }))}
+                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                    >
+                        + Add FAQ
+                    </button>
+                </div>
+
+                {formData.customFaqs.length === 0 ? (
+                    <div className="text-center py-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                        <p className="text-gray-500 dark:text-gray-400">Using auto-generated FAQs (area info, pricing, connectivity)</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Click "+ Add FAQ" to add custom FAQs that will replace the auto-generated ones</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {formData.customFaqs.map((faq: { q: string; a: string }, index: number) => (
+                            <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                    <span className="text-xs font-bold text-primary-600 dark:text-primary-400 mt-1">Q{index + 1}</span>
+                                    <input
+                                        type="text"
+                                        placeholder="Question"
+                                        value={faq.q}
+                                        onChange={(e) => {
+                                            const updated = [...formData.customFaqs];
+                                            updated[index] = { ...updated[index], q: e.target.value };
+                                            setFormData(prev => ({ ...prev, customFaqs: updated }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-medium"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const updated = formData.customFaqs.filter((_: any, i: number) => i !== index);
+                                            setFormData(prev => ({ ...prev, customFaqs: updated }));
+                                        }}
+                                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </div>
+                                <textarea
+                                    placeholder="Answer"
+                                    value={faq.a}
+                                    onChange={(e) => {
+                                        const updated = [...formData.customFaqs];
+                                        updated[index] = { ...updated[index], a: e.target.value };
+                                        setFormData(prev => ({ ...prev, customFaqs: updated }));
+                                    }}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                />
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, customFaqs: [] }))}
+                            className="text-sm text-gray-500 hover:text-red-500 transition-colors"
+                        >
+                            Clear all &amp; use auto-generated
+                        </button>
+                    </div>
+                )}
+            </div>
+
             {/* Publishing */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Publishing</h2>
@@ -1225,6 +1384,46 @@ export default function PropertyForm({ property, mode }: PropertyFormProps) {
                             className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                         />
                         <span className="text-gray-900 dark:text-white font-medium">Feature on homepage</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={formData.isVerified}
+                            onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
+                            className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                        />
+                        <span className="text-gray-900 dark:text-white font-medium">Physically Verified</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={formData.isBachelorFriendly}
+                            onChange={(e) => setFormData({ ...formData, isBachelorFriendly: e.target.checked })}
+                            className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        />
+                        <span className="text-gray-900 dark:text-white font-medium">Bachelor Friendly</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={formData.isPetFriendly}
+                            onChange={(e) => setFormData({ ...formData, isPetFriendly: e.target.checked })}
+                            className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        />
+                        <span className="text-gray-900 dark:text-white font-medium">Pet Friendly</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={formData.isVegetarianOnly}
+                            onChange={(e) => setFormData({ ...formData, isVegetarianOnly: e.target.checked })}
+                            className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        />
+                        <span className="text-gray-900 dark:text-white font-medium">Vegetarians Only</span>
                     </label>
                 </div>
             </div>

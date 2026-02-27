@@ -21,6 +21,9 @@ interface ListPageProps {
         maxPrice?: string;
         minSize?: string;
         maxSize?: string;
+        bachelor?: string;
+        pet?: string;
+        veg?: string;
     }>;
 }
 
@@ -59,6 +62,9 @@ async function getProperties(filters: {
     maxPrice?: number;
     minSize?: number;
     maxSize?: number;
+    bachelorFriendly?: boolean;
+    petFriendly?: boolean;
+    vegOnly?: boolean;
 }) {
     const where: any = {
         isPublished: true,
@@ -89,6 +95,9 @@ async function getProperties(filters: {
     if (filters.maxPrice) where.priceInr = { ...where.priceInr, lte: filters.maxPrice };
     if (filters.minSize) where.sizeSqft = { ...where.sizeSqft, gte: filters.minSize };
     if (filters.maxSize) where.sizeSqft = { ...where.sizeSqft, lte: filters.maxSize };
+    if (filters.bachelorFriendly) where.isBachelorFriendly = true;
+    if (filters.petFriendly) where.isPetFriendly = true;
+    if (filters.vegOnly) where.isVegetarianOnly = true;
 
     return await prisma.property.findMany({
         where,
@@ -143,6 +152,9 @@ export default async function ListPage({ searchParams }: ListPageProps) {
         maxPrice: params.maxPrice ? parseInt(params.maxPrice) : undefined,
         minSize: params.minSize ? parseInt(params.minSize) : undefined,
         maxSize: params.maxSize ? parseInt(params.maxSize) : undefined,
+        bachelorFriendly: params.bachelor === '1',
+        petFriendly: params.pet === '1',
+        vegOnly: params.veg === '1',
     };
 
     const properties = await getProperties(filters);

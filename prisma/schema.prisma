@@ -51,11 +51,21 @@ model Property {
   customSections   String?  // JSON: [{id, title, type, content}, ...]
   sectionOrder     String?  // JSON: ["basic-info", "specs", "custom-1", ...]
   sectionNames     String?  // JSON: {"specifications": "Key Highlights", ...}
-  
+
+  // Editable Highlights & FAQ (auto-generated with admin override)
+  customHighlights String?  // JSON: [{icon, label, value}, ...]
+  customFaqs       String?  // JSON: [{q, a}, ...]
+
   tourEmbedUrl    String?  // Made optional
   images          String?  // JSON array of image paths
   advanceMonths   Int?     // For rent: 3, 6, 9, or 12 months
   leasePeriodYears Int?    // For lease: 1-10 years
+  // Verification & Lifestyle
+  isVerified         Boolean  @default(false)
+  isBachelorFriendly Boolean  @default(false)
+  isPetFriendly      Boolean  @default(false)
+  isVegetarianOnly   Boolean  @default(false)
+
   isPublished     Boolean  @default(false)
   isFeatured      Boolean  @default(false)
   createdAt       DateTime @default(now())

@@ -69,6 +69,9 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
     const [maxPrice, setMaxPrice] = useState(parseInt(searchParams.get('maxPrice') || String(BUDGET_MAX)));
     const [minSize, setMinSize] = useState(parseInt(searchParams.get('minSize') || '0'));
     const [maxSize, setMaxSize] = useState(parseInt(searchParams.get('maxSize') || String(SIZE_MAX)));
+    const [bachelorFriendly, setBachelorFriendly] = useState(searchParams.get('bachelor') === '1');
+    const [petFriendly, setPetFriendly] = useState(searchParams.get('pet') === '1');
+    const [vegOnly, setVegOnly] = useState(searchParams.get('veg') === '1');
 
     // Dynamic "Available" lookup: depends on selected property type
     const dbAreaSet = useMemo(() => {
@@ -107,10 +110,13 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
         if (maxPrice < BUDGET_MAX) params.set('maxPrice', String(maxPrice));
         if (minSize > SIZE_MIN) params.set('minSize', String(minSize));
         if (maxSize < SIZE_MAX) params.set('maxSize', String(maxSize));
+        if (bachelorFriendly) params.set('bachelor', '1');
+        if (petFriendly) params.set('pet', '1');
+        if (vegOnly) params.set('veg', '1');
 
         router.push(`/list?${params.toString()}`);
         setIsOpen(false);
-    }, [selectedAreas, bhk, subtype, minPrice, maxPrice, minSize, maxSize, searchParams, router]);
+    }, [selectedAreas, bhk, subtype, minPrice, maxPrice, minSize, maxSize, bachelorFriendly, petFriendly, vegOnly, searchParams, router]);
 
     const handleClear = useCallback(() => {
         const params = new URLSearchParams();
@@ -127,6 +133,9 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
         setMaxPrice(BUDGET_MAX);
         setMinSize(SIZE_MIN);
         setMaxSize(SIZE_MAX);
+        setBachelorFriendly(false);
+        setPetFriendly(false);
+        setVegOnly(false);
 
         router.push(`/list?${params.toString()}`);
         setIsOpen(false);
@@ -141,6 +150,9 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
         maxPrice < BUDGET_MAX ? 'y' : '',
         minSize > SIZE_MIN ? 'y' : '',
         maxSize < SIZE_MAX ? 'y' : '',
+        bachelorFriendly ? 'y' : '',
+        petFriendly ? 'y' : '',
+        vegOnly ? 'y' : '',
     ].filter(Boolean).length;
 
     return (
@@ -375,6 +387,45 @@ export default function FilterSheet({ areasBySubtype }: FilterSheetProps) {
                                         }}
                                         className="range-slider-thumb"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Lifestyle & Community */}
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                                    Lifestyle & Community
+                                </label>
+                                <div className="space-y-3">
+                                    <label className="flex items-center justify-between cursor-pointer">
+                                        <span className="text-sm text-gray-700 dark:text-gray-300">Bachelor Friendly</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setBachelorFriendly(!bachelorFriendly)}
+                                            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${bachelorFriendly ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                        >
+                                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${bachelorFriendly ? 'translate-x-5' : ''}`} />
+                                        </button>
+                                    </label>
+                                    <label className="flex items-center justify-between cursor-pointer">
+                                        <span className="text-sm text-gray-700 dark:text-gray-300">Pet Friendly</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPetFriendly(!petFriendly)}
+                                            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${petFriendly ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                        >
+                                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${petFriendly ? 'translate-x-5' : ''}`} />
+                                        </button>
+                                    </label>
+                                    <label className="flex items-center justify-between cursor-pointer">
+                                        <span className="text-sm text-gray-700 dark:text-gray-300">Vegetarians Only</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setVegOnly(!vegOnly)}
+                                            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${vegOnly ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                        >
+                                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${vegOnly ? 'translate-x-5' : ''}`} />
+                                        </button>
+                                    </label>
                                 </div>
                             </div>
                         </div>

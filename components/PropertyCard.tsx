@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Property } from '@prisma/client';
 import { formatPrice, formatSize } from '@/lib/utils';
 import ShortlistButton from './ShortlistButton';
+import VerifiedBadge from './VerifiedBadge';
 
 interface PropertyCardProps {
     property: Property;
@@ -50,6 +51,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                             {property.usageType}
                         </span>
                     </div>
+                    {property.isVerified && (
+                        <div className="absolute bottom-3 left-3">
+                            <VerifiedBadge size="sm" />
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="relative w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
@@ -67,6 +73,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                             {property.usageType}
                         </span>
                     </div>
+                    {property.isVerified && (
+                        <div className="absolute bottom-3 left-3">
+                            <VerifiedBadge size="sm" />
+                        </div>
+                    )}
                 </div>
             )}
 
