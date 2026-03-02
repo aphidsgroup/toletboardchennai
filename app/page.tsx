@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     description: 'Find your perfect property in Chennai with immersive 360° virtual tours. Browse apartments, villas, offices, shops and more. Rent or lease residential and commercial properties across Chennai.',
 };
 
+export const revalidate = 60;
+
 async function getSiteSettings() {
     const settings = await prisma.siteSettings.upsert({
         where: { id: 'default' },

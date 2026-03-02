@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { generateSlug } from '@/lib/utils';
@@ -59,6 +60,9 @@ export async function POST(request: Request) {
                 slug: uniqueSlug,
             },
         });
+
+        revalidatePath('/');
+        revalidatePath('/list');
 
         return NextResponse.json(property, { status: 201 });
     } catch (error) {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { isAuthenticated } from '@/lib/auth';
 
@@ -42,6 +43,9 @@ export async function PUT(
             data: body,
         });
 
+        revalidatePath('/');
+        revalidatePath('/list');
+
         return NextResponse.json(property);
     } catch (error) {
         console.error('Error updating property:', error);
@@ -60,6 +64,9 @@ export async function DELETE(
     try {
         const { id } = await context.params;
         await prisma.property.delete({ where: { id } });
+
+        revalidatePath('/');
+        revalidatePath('/list');
 
         return NextResponse.json({ success: true });
     } catch (error) {
