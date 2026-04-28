@@ -12,7 +12,7 @@ interface OnboardingSubmission {
     phone: string;
     whatsappNumber: string | null;
     email: string | null;
-    wants whatsappUpdates: boolean;
+    wantsWhatsappUpdates: boolean;
     tenantType: string | null;
     preferredAreas: string | null;
     propertyType: string | null;
