@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface Lead { id:string; name:string; phone:string; email:string|null; lookingFor:string; propertyType:string|null; budgetRange:string|null; preferredArea:string|null; message:string|null; createdAt:string; }
 interface User { id:string; name:string; email:string|null; phone:string; whatsappNumber:string|null; createdAt:string; shortlists:{id:string;propertyId:string;property:{title:string;slug:string}}[]; }
