@@ -42,6 +42,7 @@ export default function OwnerOnboardingForm() {
         commercialTenantTypes: [] as string[],
         agreedToTerms: false,
     });
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const signatureRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -59,6 +60,42 @@ export default function OwnerOnboardingForm() {
             }
             return { ...prev, [name]: [...current, value] };
         });
+    };
+
+    const validateStep = (currentStep: number) => {
+        const newErrors: Record<string, string> = {};
+        
+        const isRepeated = (str: string) => /^(.)\1+$/.test(str.toLowerCase().trim());
+
+        if (currentStep === 1) {
+            if (formData.name.trim().length < 3) newErrors.name = 'Name must be at least 3 characters';
+            if (isRepeated(formData.name)) newErrors.name = 'Please enter a valid name';
+            
+            if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Please enter a valid 10-digit WhatsApp number';
+            if (isRepeated(formData.phone)) newErrors.phone = 'Please enter a valid phone number';
+            
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Please enter a valid email address';
+            
+            if (formData.propertyAddress.trim().length < 15) newErrors.propertyAddress = 'Please enter a more detailed property address';
+            if (isRepeated(formData.propertyAddress.replace(/\s/g, ''))) newErrors.propertyAddress = 'Please enter a valid address';
+            
+            if (!formData.propertyType) newErrors.propertyType = 'Please select a property type';
+        }
+
+        if (currentStep === 2) {
+            if (formData.purposeOfRental.length === 0) newErrors.purposeOfRental = 'Select at least one purpose';
+            if (Number(formData.totalSqft) < 100) newErrors.totalSqft = 'Invalid square footage';
+            if (Number(formData.monthlyRent) < 1000) newErrors.monthlyRent = 'Monthly rent seems too low';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleNext = () => {
+        if (validateStep(step)) {
+            setStep(step + 1);
+        }
     };
 
     // Signature Logic
@@ -176,12 +213,13 @@ export default function OwnerOnboardingForm() {
                     {/* Step 1: Owner & Property Basics */}
                     {step === 1 && (
                         <div className="space-y-6 animate-fade-in">
-                            <InputField label="Owner Name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your full name" />
-                            <InputField label="WhatsApp Number" name="phone" value={formData.phone} onChange={handleChange} required placeholder="Enter your WhatsApp number" type="tel" />
-                            <InputField label="Email Address" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter your email" type="email" />
+                            <InputField label="Owner Name" name="name" value={formData.name} onChange={handleChange} error={errors.name} required placeholder="Enter your full name" />
+                            <InputField label="WhatsApp Number" name="phone" value={formData.phone} onChange={handleChange} error={errors.phone} required placeholder="10-digit WhatsApp number" type="tel" />
+                            <InputField label="Email Address" name="email" value={formData.email} onChange={handleChange} error={errors.email} required placeholder="Enter your email" type="email" />
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Exact Property Address *</label>
-                                <textarea name="propertyAddress" required value={formData.propertyAddress} onChange={handleChange} placeholder="Enter the full address including landmark" rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 outline-none resize-none" />
+                                <textarea name="propertyAddress" required value={formData.propertyAddress} onChange={handleChange} placeholder="Enter the full address including landmark" rows={3} className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none resize-none ${errors.propertyAddress ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700'}`} />
+                                {errors.propertyAddress && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{errors.propertyAddress}</p>}
                             </div>
                             <div className="space-y-3">
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Property Type *</label>
@@ -190,8 +228,9 @@ export default function OwnerOnboardingForm() {
                                         <SelectionCard key={t.id} label={t.label} active={formData.propertyType === t.label} onClick={() => setFormData(p => ({ ...p, propertyType: t.label }))} />
                                     ))}
                                 </div>
+                                {errors.propertyType && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{errors.propertyType}</p>}
                             </div>
-                            <NavButtons step={step} setStep={setStep} nextDisabled={!formData.name || !formData.phone || !formData.email || !formData.propertyAddress || !formData.propertyType} />
+                            <NavButtons step={step} onNext={handleNext} setStep={setStep} nextDisabled={!formData.name || !formData.phone || !formData.email || !formData.propertyAddress || !formData.propertyType} />
                         </div>
                     )}
 
@@ -205,8 +244,9 @@ export default function OwnerOnboardingForm() {
                                         <CheckboxItem key={p} label={p} checked={formData.purposeOfRental.includes(p)} onChange={() => toggleArrayItem('purposeOfRental', p)} />
                                     ))}
                                 </div>
+                                {errors.purposeOfRental && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{errors.purposeOfRental}</p>}
                             </div>
-                            <InputField label="Total Square Feet" name="totalSqft" value={formData.totalSqft} onChange={handleChange} required placeholder="Enter area in sq ft" type="number" />
+                            <InputField label="Total Square Feet" name="totalSqft" value={formData.totalSqft} onChange={handleChange} error={errors.totalSqft} required placeholder="Enter area in sq ft" type="number" />
                             
                             {formData.purposeOfRental.includes('Residential Rental') && (
                                 <InputField label="BHK Type" name="bhkType" value={formData.bhkType} onChange={handleChange} required placeholder="e.g., 2BHK, 3BHK, or describe" />
@@ -221,8 +261,8 @@ export default function OwnerOnboardingForm() {
                                 </div>
                             </div>
                             <InputField label="Total Number of Car Parking" name="carParkingCount" value={formData.carParkingCount} onChange={handleChange} required placeholder="Enter number of cars" type="number" />
-                            <InputField label="Monthly Rent" name="monthlyRent" value={formData.monthlyRent} onChange={handleChange} required placeholder="Enter monthly rent in INR" type="number" />
-                            <NavButtons step={step} setStep={setStep} nextDisabled={formData.purposeOfRental.length === 0 || !formData.totalSqft || !formData.parkingType || !formData.carParkingCount || !formData.monthlyRent} />
+                            <InputField label="Monthly Rent" name="monthlyRent" value={formData.monthlyRent} onChange={handleChange} error={errors.monthlyRent} required placeholder="Enter monthly rent in INR" type="number" />
+                            <NavButtons step={step} onNext={handleNext} setStep={setStep} nextDisabled={formData.purposeOfRental.length === 0 || !formData.totalSqft || !formData.parkingType || !formData.carParkingCount || !formData.monthlyRent} />
                         </div>
                     )}
 
@@ -242,7 +282,7 @@ export default function OwnerOnboardingForm() {
                                 <InputField label="Maintenance Amount Per Month" name="maintenanceAmount" value={formData.maintenanceAmount} onChange={handleChange} required placeholder="Enter monthly maintenance in INR" type="number" />
                             )}
                             <InputField label="Minimum Lease Period" name="minimumLease" value={formData.minimumLease} onChange={handleChange} required placeholder="Enter minimum lease in years" type="number" />
-                            <NavButtons step={step} setStep={setStep} nextDisabled={!formData.securityDeposit || !formData.maintenanceFee || (formData.maintenanceFee === 'Yes' && !formData.maintenanceAmount) || !formData.minimumLease} />
+                            <NavButtons step={step} onNext={handleNext} setStep={setStep} nextDisabled={!formData.securityDeposit || !formData.maintenanceFee || (formData.maintenanceFee === 'Yes' && !formData.maintenanceAmount) || !formData.minimumLease} />
                         </div>
                     )}
 
@@ -269,7 +309,7 @@ export default function OwnerOnboardingForm() {
                                     </div>
                                 </div>
                             )}
-                            <NavButtons step={step} setStep={setStep} />
+                            <NavButtons step={step} onNext={handleNext} setStep={setStep} />
                         </div>
                     )}
 
@@ -311,12 +351,13 @@ export default function OwnerOnboardingForm() {
     );
 }
 
-function InputField({ label, ...props }: any) {
+function InputField({ label, error, ...props }: any) {
     return (
         <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{label} *</label>
             <div className="relative">
-                <input {...props} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 transition-all outline-none" />
+                <input {...props} className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none ${error ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500'}`} />
+                {error && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{error}</p>}
             </div>
         </div>
     );
@@ -344,11 +385,11 @@ function CheckboxItem({ label, checked, onChange }: { label: string, checked: bo
     );
 }
 
-function NavButtons({ step, setStep, nextDisabled }: { step: number, setStep: (s: number) => void, nextDisabled?: boolean }) {
+function NavButtons({ step, setStep, nextDisabled, onNext }: { step: number, setStep: (s: number) => void, nextDisabled?: boolean, onNext?: () => void }) {
     return (
         <div className="flex gap-4 pt-4">
             {step > 1 && <button type="button" onClick={() => setStep(step - 1)} className="flex-1 py-4 rounded-2xl font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 transition-all hover:bg-gray-200">Back</button>}
-            <button type="button" onClick={() => setStep(step + 1)} disabled={nextDisabled} className="flex-[2] btn-premium py-4 rounded-2xl font-bold transition-all disabled:opacity-50">Next</button>
+            <button type="button" onClick={onNext || (() => setStep(step + 1))} disabled={nextDisabled} className="flex-[2] btn-premium py-4 rounded-2xl font-bold transition-all disabled:opacity-50">Next</button>
         </div>
     );
 }
