@@ -42,16 +42,20 @@ export async function POST(request: Request) {
 
         if (action === 'verify') {
             // Convert to Lead
-            await prisma.leadFormResponse.create({
+            await prisma.lead.create({
                 data: {
+                    leadType: submission.formType as 'owner' | 'tenant',
                     name: submission.name,
                     phone: submission.phone,
                     email: submission.email,
-                    lookingFor: submission.formType === 'tenant' ? 'rent' : 'sell', // Mapping owner to sell for now or custom
+                    whatsappNumber: submission.whatsappNumber,
+                    source: 'onboarding_form',
+                    status: 'new',
+                    propertyAddress: submission.propertyAddress,
                     propertyType: submission.propertyType,
                     budgetRange: submission.budgetRange,
-                    preferredArea: submission.preferredAreas || submission.propertyAddress,
-                    message: submission.propertyDetails ? `SUBMISSION DETAILS: ${submission.propertyDetails}` : 'From onboarding form',
+                    preferredArea: submission.preferredAreas,
+                    message: submission.propertyDetails ? `Onboarding Details: ${submission.propertyDetails}` : 'From onboarding form',
                 }
             });
 

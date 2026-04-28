@@ -217,8 +217,54 @@ function FormsDashboardContent() {
                                         )}
                                         {selectedSub.propertyDetails && (
                                             <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl">
-                                                <h4 className="text-xs font-black text-gray-400 uppercase mb-2">Additional Details</h4>
-                                                <p className="text-gray-900 dark:text-white font-medium whitespace-pre-wrap">{selectedSub.propertyDetails}</p>
+                                                <h4 className="text-xs font-black text-gray-400 uppercase mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Full Onboarding Details</h4>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                                                    {(() => {
+                                                        try {
+                                                            let details = selectedSub.propertyDetails;
+                                                            // Handle potential double stringification from previous bug
+                                                            if (typeof details === 'string' && (details.startsWith('{') || details.startsWith('"'))) {
+                                                                try {
+                                                                    const parsed = JSON.parse(details);
+                                                                    details = typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+                                                                } catch (e) {
+                                                                    // Fallback if it's not JSON
+                                                                }
+                                                            }
+
+                                                            if (typeof details !== 'object' || details === null) {
+                                                                return <p className="text-gray-900 dark:text-white font-medium whitespace-pre-wrap col-span-full">{selectedSub.propertyDetails}</p>;
+                                                            }
+
+                                                            return (
+                                                                <>
+                                                                    <DetailItem label="Purpose" value={Array.isArray(details.purposeOfRental) ? details.purposeOfRental.join(', ') : details.purposeOfRental} />
+                                                                    <DetailItem label="Total Area" value={details.totalSqft ? `${details.totalSqft} Sq Ft` : null} />
+                                                                    <DetailItem label="BHK" value={details.bhkType} />
+                                                                    <DetailItem label="Parking" value={details.parkingType} />
+                                                                    <DetailItem label="Car Parks" value={details.carParkingCount} />
+                                                                    <DetailItem label="Monthly Rent" value={details.monthlyRent ? `₹${Number(details.monthlyRent).toLocaleString('en-IN')}` : null} />
+                                                                    <DetailItem label="Security Deposit" value={details.securityDeposit ? `₹${Number(details.securityDeposit).toLocaleString('en-IN')}` : null} />
+                                                                    <DetailItem label="Maintenance" value={details.maintenanceFee === 'Yes' ? `₹${Number(details.maintenanceAmount).toLocaleString('en-IN')}` : (details.maintenanceFee === 'No' ? 'No' : null)} />
+                                                                    <DetailItem label="Min. Lease" value={details.minimumLease ? `${details.minimumLease} Years` : null} />
+                                                                    <DetailItem label="Tenant Preferences" value={Array.isArray(details.tenantPreferences) ? details.tenantPreferences.join(', ') : details.tenantPreferences} />
+                                                                    <DetailItem label="Commercial Types" value={Array.isArray(details.commercialTenantTypes) ? details.commercialTenantTypes.join(', ') : details.commercialTenantTypes} />
+                                                                    
+                                                                    {details.signature && (
+                                                                        <div className="col-span-full mt-6">
+                                                                            <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Digital Signature</div>
+                                                                            <div className="bg-white rounded-xl p-4 border border-gray-200 inline-block">
+                                                                                <img src={details.signature} alt="Signature" className="h-24 object-contain" />
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </>
+                                                            );
+                                                        } catch (e) {
+                                                            return <p className="text-gray-900 dark:text-white font-medium whitespace-pre-wrap col-span-full">{selectedSub.propertyDetails}</p>;
+                                                        }
+                                                    })()}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

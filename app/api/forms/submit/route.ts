@@ -40,7 +40,7 @@ export async function POST(request: Request) {
                 bedrooms,
                 moveInDate: moveInDate ? new Date(moveInDate) : null,
                 propertyAddress,
-                propertyDetails: propertyDetails ? JSON.stringify(propertyDetails) : null,
+                propertyDetails: propertyDetails ? (typeof propertyDetails === 'string' ? propertyDetails : JSON.stringify(propertyDetails)) : null,
             }
         });
 
