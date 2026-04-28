@@ -6,7 +6,7 @@ const packages = [
         color: 'from-emerald-500 to-teal-600', borderColor: 'border-emerald-200 dark:border-emerald-800/40',
         bgAccent: 'bg-emerald-50 dark:bg-emerald-900/20', textAccent: 'text-emerald-600 dark:text-emerald-400',
         badge: '🤝 Best for Hands-Off Owners',
-        bestFor: 'Owners who want zero upfront cost and a completely hands-off experience. You take the risk, they get the results.',
+        bestFor: 'Owners who want zero upfront cost and a completely hands-off experience. We invest in your property marketing first — 360° shoot, listing, promotion and everything — so our commission on closure is one month rent.',
         requirement: 'Signed Exclusive Marketing Agreement (EMA) for 60–90 days',
         deliverables: [
             'Professional 360° Virtual Shoot of the property',
@@ -16,9 +16,9 @@ const packages = [
             'Direct lead handling by ToLetBoardChennai team',
             'Priority support throughout the listing period',
         ],
-        commission: 'Half month rent from owner + Half month rent from tenant',
+        commission: 'One month rent from owner + Half month rent from tenant',
         deduction: null,
-        ownerHighlight: 'Zero upfront cost — we invest in your property marketing first',
+        ownerHighlight: 'Zero upfront cost — we do everything first. Our commission on closure is one month rent (no hidden charges).',
         isPopular: false,
     },
     {
@@ -83,7 +83,7 @@ const packages = [
 ];
 
 const commonTerms = [
-    'Brokerage on successful closure: half month rent from owner + half month rent from tenant.',
+    'Brokerage on successful closure: For the Free Exclusive Package — one month rent from owner + half month rent from tenant. For all paid packages — half month rent from owner (with upfront fee adjusted) + half month rent from tenant.',
     'For all paid packages, the upfront amount is collected for operational cost, shoot execution, content creation, listing work, and promotion — the same amount is adjusted from the owner-side commission after closure.',
     'For the Free Exclusive Package, the owner must sign an EMA before shoot, banner placement, or promotion starts.',
     'Paid promotion includes "ad spend included up to limit" — additional ad budget beyond the limit is chargeable separately.',
@@ -153,7 +153,8 @@ export default function OwnersContent() {
                         Upfront Fee Policy
                     </h2>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        For all paid packages, the upfront package amount is collected toward operational and marketing costs including 360 shoot, listing, content creation, promotion, and ad execution. Upon successful closure of the rental through ToLetBoardChennai, the paid package amount shall be adjusted against the owner-side half month rental commission. Tenant-side commission remains payable separately.
+                        <strong>Free Exclusive Package:</strong> No upfront cost. We invest in your property marketing first (360° shoot, listing, social media, banner). Our commission on successful closure is one month rent from owner + half month rent from tenant.<br /><br />
+                        <strong>Paid Packages (₹999 / ₹1,999 / ₹2,999):</strong> The upfront amount covers operational and marketing costs. Upon successful closure, this amount is adjusted against the owner-side half month rental commission. Tenant-side commission of half month rent remains payable separately.
                     </p>
                 </div>
             </div>
