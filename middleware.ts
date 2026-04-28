@@ -5,8 +5,13 @@ import { getSession } from '@/lib/auth';
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Allow login page
+    // Allow admin login page
     if (pathname === '/admin/login') {
+        return NextResponse.next();
+    }
+
+    // Allow manager login page (separate hidden URL)
+    if (pathname === '/manager/login') {
         return NextResponse.next();
     }
 

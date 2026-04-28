@@ -12,6 +12,17 @@ export default function SettingsPage() {
     const [pwSuccess, setPwSuccess] = useState('');
     const [pwSaving, setPwSaving] = useState(false);
 
+    // Credentials management state
+    const [managers, setManagers] = useState<{ id: string; name: string; email: string }[]>([]);
+    const [adminCred, setAdminCred] = useState({ currentPassword: '', newEmail: '', newPassword: '', confirmPassword: '' });
+    const [adminCredError, setAdminCredError] = useState('');
+    const [adminCredSuccess, setAdminCredSuccess] = useState('');
+    const [adminCredSaving, setAdminCredSaving] = useState(false);
+    const [mgrCred, setMgrCred] = useState({ managerId: '', newName: '', newEmail: '', newPassword: '', confirmPassword: '' });
+    const [mgrCredError, setMgrCredError] = useState('');
+    const [mgrCredSuccess, setMgrCredSuccess] = useState('');
+    const [mgrCredSaving, setMgrCredSaving] = useState(false);
+
     const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
         setPwError('');
@@ -72,6 +83,8 @@ export default function SettingsPage() {
 
     useEffect(() => {
         fetchSettings();
+        // Load managers for dropdown
+        fetch('/api/admin/managers').then(r => r.json()).then(d => setManagers(d.managers || [])).catch(() => {});
     }, []);
 
     const fetchSettings = async () => {
@@ -153,6 +166,103 @@ export default function SettingsPage() {
 
     const updateField = (key: string, value: string) => {
         setFormData(prev => ({ ...prev, [key]: value }));
+    };
+
+    // ── Admin credentials handler ─────────────────────────────────────────
+    const handleAdminCredentials = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setAdminCredError('');
+        setAdminCredSuccess('');
+
+        if (adminCred.newPassword && adminCred.newPassword !== adminCred.confirmPassword) {
+            setAdminCredError('New passwords do not match');
+            return;
+        }
+        if (adminCred.newPassword && adminCred.newPassword.length < 8) {
+            setAdminCredError('New password must be at least 8 characters');
+            return;
+        }
+        if (!adminCred.newEmail && !adminCred.newPassword) {
+            setAdminCredError('Enter a new email or new password to update');
+            return;
+        }
+
+        setAdminCredSaving(true);
+        try {
+            const res = await fetch('/api/admin/credentials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target: 'admin',
+                    currentPassword: adminCred.currentPassword,
+                    newEmail: adminCred.newEmail || undefined,
+                    newPassword: adminCred.newPassword || undefined,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setAdminCredError(data.error || 'Failed to update');
+            } else {
+                setAdminCredSuccess('Admin credentials updated! Please log in again if you changed your email.');
+                setAdminCred({ currentPassword: '', newEmail: '', newPassword: '', confirmPassword: '' });
+            }
+        } catch {
+            setAdminCredError('Something went wrong');
+        } finally {
+            setAdminCredSaving(false);
+        }
+    };
+
+    // ── Manager credentials handler ───────────────────────────────────────
+    const handleManagerCredentials = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMgrCredError('');
+        setMgrCredSuccess('');
+
+        if (!mgrCred.managerId) {
+            setMgrCredError('Select a manager first');
+            return;
+        }
+        if (mgrCred.newPassword && mgrCred.newPassword !== mgrCred.confirmPassword) {
+            setMgrCredError('New passwords do not match');
+            return;
+        }
+        if (mgrCred.newPassword && mgrCred.newPassword.length < 6) {
+            setMgrCredError('Password must be at least 6 characters');
+            return;
+        }
+        if (!mgrCred.newName && !mgrCred.newEmail && !mgrCred.newPassword) {
+            setMgrCredError('Enter at least one field to update');
+            return;
+        }
+
+        setMgrCredSaving(true);
+        try {
+            const res = await fetch('/api/admin/credentials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target: 'manager',
+                    managerId: mgrCred.managerId,
+                    newName: mgrCred.newName || undefined,
+                    newEmail: mgrCred.newEmail || undefined,
+                    newPassword: mgrCred.newPassword || undefined,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setMgrCredError(data.error || 'Failed to update');
+            } else {
+                setMgrCredSuccess(`Manager credentials updated successfully.`);
+                setMgrCred({ managerId: mgrCred.managerId, newName: '', newEmail: '', newPassword: '', confirmPassword: '' });
+                // Refresh manager list
+                fetch('/api/admin/managers').then(r => r.json()).then(d => setManagers(d.managers || [])).catch(() => {});
+            }
+        } catch {
+            setMgrCredError('Something went wrong');
+        } finally {
+            setMgrCredSaving(false);
+        }
     };
 
     if (loading) {
@@ -351,6 +461,112 @@ export default function SettingsPage() {
                         >
                             {pwSaving ? 'Changing...' : 'Change Password'}
                         </button>
+                    </div>
+                </div>
+
+                {/* ═══ CREDENTIALS MANAGEMENT ═══════════════════════════════════ */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-amber-50 dark:bg-amber-900/20">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Credentials Management</h2>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Change admin or manager login details</p>
+                    </div>
+
+                    <div className="p-6 space-y-8">
+                        {/* Admin credentials */}
+                        <div>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <span className="w-6 h-6 bg-primary-100 dark:bg-primary-900/40 rounded-lg flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                </span>
+                                My Admin Credentials
+                            </h3>
+
+                            {adminCredError && <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm">{adminCredError}</div>}
+                            {adminCredSuccess && <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl text-sm">{adminCredSuccess}</div>}
+
+                            <form onSubmit={handleAdminCredentials} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="sm:col-span-2">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Current Password <span className="text-red-500">*</span></label>
+                                    <input type="password" required value={adminCred.currentPassword} onChange={e => setAdminCred(p => ({ ...p, currentPassword: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="Enter current password to verify" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">New Email <span className="text-gray-400 font-normal">(optional)</span></label>
+                                    <input type="email" value={adminCred.newEmail} onChange={e => setAdminCred(p => ({ ...p, newEmail: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="new@email.com" />
+                                </div>
+                                <div />
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">New Password <span className="text-gray-400 font-normal">(optional, min 8 chars)</span></label>
+                                    <input type="password" value={adminCred.newPassword} onChange={e => setAdminCred(p => ({ ...p, newPassword: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="New password" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Confirm New Password</label>
+                                    <input type="password" value={adminCred.confirmPassword} onChange={e => setAdminCred(p => ({ ...p, confirmPassword: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="Re-enter new password" />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <button type="submit" disabled={adminCredSaving} className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold rounded-xl text-sm transition-colors disabled:cursor-not-allowed">
+                                        {adminCredSaving ? 'Updating…' : 'Update My Credentials'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <hr className="border-gray-200 dark:border-gray-700" />
+
+                        {/* Manager credentials */}
+                        <div>
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <span className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                </span>
+                                Manager Credentials
+                                <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-normal">Admin Override — No current password needed</span>
+                            </h3>
+
+                            {managers.length === 0 ? (
+                                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No managers found. Create one from the Managers page first.</p>
+                            ) : (
+                                <>
+                                    {mgrCredError && <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl text-sm">{mgrCredError}</div>}
+                                    {mgrCredSuccess && <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl text-sm">{mgrCredSuccess}</div>}
+
+                                    <form onSubmit={handleManagerCredentials} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Select Manager <span className="text-red-500">*</span></label>
+                                            <select value={mgrCred.managerId} onChange={e => setMgrCred(p => ({ ...p, managerId: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm">
+                                                <option value="">— Choose a manager —</option>
+                                                {managers.map(m => (
+                                                    <option key={m.id} value={m.id}>{m.name} ({m.email})</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">New Name <span className="text-gray-400 font-normal">(optional)</span></label>
+                                            <input type="text" value={mgrCred.newName} onChange={e => setMgrCred(p => ({ ...p, newName: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Manager name" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">New Email <span className="text-gray-400 font-normal">(optional)</span></label>
+                                            <input type="email" value={mgrCred.newEmail} onChange={e => setMgrCred(p => ({ ...p, newEmail: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="manager@example.com" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">New Password <span className="text-gray-400 font-normal">(optional, min 6 chars)</span></label>
+                                            <input type="password" value={mgrCred.newPassword} onChange={e => setMgrCred(p => ({ ...p, newPassword: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="New password" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Confirm Password</label>
+                                            <input type="password" value={mgrCred.confirmPassword} onChange={e => setMgrCred(p => ({ ...p, confirmPassword: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Re-enter password" />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <button type="submit" disabled={mgrCredSaving || !mgrCred.managerId} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold rounded-xl text-sm transition-colors disabled:cursor-not-allowed">
+                                                {mgrCredSaving ? 'Updating…' : 'Update Manager Credentials'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 

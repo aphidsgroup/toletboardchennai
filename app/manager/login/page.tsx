@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function AdminLoginPage() {
+export default function ManagerLoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await fetch('/api/auth/manager/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -29,69 +29,68 @@ export default function AdminLoginPage() {
                 return;
             }
 
-            window.location.href = '/admin';
+            window.location.href = '/manager';
         } catch {
-            setError('An error occurred. Please try again.');
+            setError('Something went wrong. Please try again.');
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-center justify-center px-4">
-            <div className="max-w-md w-full">
-                <div className="text-center mb-8">
-                    <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary-500 to-primary-700 rounded-3xl shadow-lg flex items-center justify-center mb-4">
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+            <div className="w-full max-w-sm">
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
+                    {/* Minimal header — no branding that reveals it's admin-related */}
+                    <div className="text-center mb-8">
+                        <div className="w-12 h-12 mx-auto bg-indigo-600 rounded-xl flex items-center justify-center mb-4">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <h1 className="text-xl font-bold text-white">Staff Portal</h1>
+                        <p className="text-gray-500 text-sm mt-1">Authorised personnel only</p>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Panel</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Tolet Board Chennai CMS</p>
-                </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {error && (
-                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
-                                {error}
-                            </div>
-                        )}
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-900/30 border border-red-800 rounded-xl text-red-400 text-sm">
+                            {error}
+                        </div>
+                    )}
 
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                            <label className="block text-sm font-medium text-gray-400 mb-1.5">
                                 Email
                             </label>
                             <input
-                                id="email"
                                 type="email"
+                                required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                                placeholder="admin@toletboardchennai.com"
+                                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                placeholder="staff@example.com"
                                 autoComplete="email"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                            <label className="block text-sm font-medium text-gray-400 mb-1.5">
                                 Password
                             </label>
                             <div className="relative">
                                 <input
-                                    id="password"
                                     type={showPassword ? 'text' : 'password'}
+                                    required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 pr-12 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                                     placeholder="••••••••"
                                     autoComplete="current-password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 transition-colors"
                                     tabIndex={-1}
                                 >
                                     {showPassword ? (
@@ -106,7 +105,7 @@ export default function AdminLoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:cursor-not-allowed"
+                            className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all mt-2"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">

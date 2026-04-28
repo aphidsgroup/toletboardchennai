@@ -64,7 +64,7 @@ export default function ManagerDashboard() {
             .then(data => {
                 if (!data.user || (data.user.role !== 'manager' && data.user.role !== 'admin')) {
                     setAuthorized(false);
-                    window.location.href = '/admin/login';
+                    window.location.href = '/manager/login';
                     return;
                 }
 
@@ -107,7 +107,7 @@ export default function ManagerDashboard() {
             })
             .catch(() => {
                 setAuthorized(false);
-                window.location.href = '/admin/login';
+                window.location.href = '/manager/login';
             });
     }, [router]);
 
