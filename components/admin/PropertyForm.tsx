@@ -37,6 +37,7 @@ interface PropertyFormProps {
 export default function PropertyForm({ property, mode, apiBasePath = '/api/admin/properties', redirectPath = '/admin/properties', role = 'admin' }: PropertyFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [uploadingImages, setUploadingImages] = useState<string[]>([]); // filenames being uploaded
 
     const [formData, setFormData] = useState({
         title: property?.title || '',
@@ -348,24 +349,33 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        // Check if adding these files would exceed the limit
         if (formData.images.length + files.length > 5) {
             alert('Maximum 5 images allowed per property');
             return;
         }
 
-        // Upload each file directly to Supabase Storage (bypasses Vercel 4.5MB limit)
+        const fileArray = Array.from(files);
+        setUploadingImages(fileArray.map(f => f.name));
+
+        // Upload each file to Cloudinary (auto-converted to WebP)
         const uploadedPaths: string[] = [];
-        for (let i = 0; i < files.length; i++) {
+        for (let i = 0; i < fileArray.length; i++) {
+            const file = fileArray[i];
             try {
-                const url = await uploadImageDirect(files[i]);
+                const url = await uploadImageDirect(file, (pct) => {
+                    setUploadingImages(prev =>
+                        prev.map((name, idx) => idx === i ? `${file.name} (${pct}%)` : name)
+                    );
+                });
                 uploadedPaths.push(url);
             } catch (error) {
                 console.error('Upload error:', error);
-                alert(error instanceof Error ? error.message : `Failed to upload ${files[i].name}`);
+                alert(error instanceof Error ? error.message : `Failed to upload ${file.name}`);
                 break;
             }
         }
+
+        setUploadingImages([]);
 
         if (uploadedPaths.length > 0) {
             setFormData(prev => ({
@@ -677,7 +687,13 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
 
             {/* Property Images */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Property Images</h2>
+                <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Property Images</h2>
+                    <span className="inline-flex items-center gap-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold px-2 py-0.5 rounded-full">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Auto WebP Optimized
+                    </span>
+                </div>
 
                 <div>
                     <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
@@ -685,20 +701,36 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
                     </label>
                     <input
                         type="file"
-                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                         multiple
                         onChange={handleImageUpload}
-                        disabled={formData.images.length >= 5}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900 dark:file:text-primary-300"
+                        disabled={formData.images.length >= 5 || uploadingImages.length > 0}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900 dark:file:text-primary-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Accepted formats: JPG, PNG, WEBP. Max size: 5MB per image. {formData.images.length}/5 uploaded
+                        Accepted: JPG, PNG, WEBP, GIF · Max 10MB · Auto-converted to WebP · {formData.images.length}/5 uploaded
                     </p>
                 </div>
 
+                {/* Upload progress */}
+                {uploadingImages.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                        {uploadingImages.map((name, i) => (
+                            <div key={i} className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl px-4 py-2.5">
+                                <svg className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                <span className="text-xs text-blue-700 dark:text-blue-300 font-medium truncate flex-1">{name}</span>
+                                <span className="text-xs text-blue-500 font-semibold flex-shrink-0">Uploading to Cloudinary…</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
                 {formData.images.length > 0 && (
                     <div className="mt-4">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Uploaded Images:</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Uploaded Images (WebP):</p>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                             {formData.images.map((imagePath: string, index: number) => (
                                 <div key={index} className="relative group">
@@ -717,9 +749,12 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
-                                    {index === 0 && (
-                                        <span className="absolute bottom-2 left-2 bg-primary-500 text-white text-xs px-2 py-1 rounded-full">
-                                            Main
+                                    <span className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded font-mono">
+                                        {index === 0 ? '⭐ Main' : `#${index + 1}`}
+                                    </span>
+                                    {imagePath.includes('cloudinary') && (
+                                        <span className="absolute top-2 left-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
+                                            WebP
                                         </span>
                                     )}
                                 </div>

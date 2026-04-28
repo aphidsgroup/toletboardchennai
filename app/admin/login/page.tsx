@@ -36,11 +36,10 @@ export default function AdminLoginPage() {
             }
 
             if (loginType === 'manager') {
-                router.push('/manager');
+                window.location.href = '/manager';
             } else {
-                router.push('/admin');
+                window.location.href = '/admin';
             }
-            router.refresh();
         } catch (err) {
             setError('An error occurred. Please try again.');
             setLoading(false);
