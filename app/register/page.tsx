@@ -98,14 +98,12 @@ export default function RegisterPage() {
             // Non-critical
         } finally {
             setSavingWa(false);
-            router.push(redirectTo);
-            router.refresh();
+            window.location.href = redirectTo;
         }
     }
 
     function handleSkipWhatsapp() {
-        router.push(redirectTo);
-        router.refresh();
+        window.location.href = redirectTo;
     }
 
     if (step === 2) {

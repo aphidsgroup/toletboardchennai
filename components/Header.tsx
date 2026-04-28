@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface HeaderProps {
     brandName?: string;
@@ -18,13 +19,15 @@ export default function Header({ brandName = 'Tolet Board Chennai' }: HeaderProp
     const [user, setUser] = useState<UserInfo | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // Check auth status on mount
+    const pathname = usePathname();
+
+    // Re-check auth status on every page navigation
     useEffect(() => {
-        fetch('/api/auth/me')
+        fetch('/api/auth/me', { cache: 'no-store' })
             .then(res => res.ok ? res.json() : null)
-            .then(data => { if (data?.user) setUser(data.user); })
-            .catch(() => { });
-    }, []);
+            .then(data => { setUser(data?.user || null); })
+            .catch(() => { setUser(null); });
+    }, [pathname]);
 
     // Close menu on outside click
     useEffect(() => {
