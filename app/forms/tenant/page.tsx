@@ -80,8 +80,44 @@ export default function TenantFormPage() {
         setFormData(prev => ({ ...prev, preferredAreas: selectedAreas.join(', ') }));
     }, [selectedAreas]);
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const validate = () => {
+        const newErrors: Record<string, string> = {};
+        const isRepeated = (str: string) => /^(.)\1+$/.test(str.toLowerCase().trim());
+        const hasExcessiveRepetition = (str: string) => /(.)\1{3,}/.test(str.toLowerCase().trim());
+        const isJunkName = (name: string) => {
+            const junkKeywords = ['test', 'demo', 'junk', 'fake', 'admin', 'development', 'mobile app', 'agency', 'service', 'company', '9999', '0000'];
+            const lower = name.toLowerCase();
+            return junkKeywords.some(k => lower.includes(k)) || hasExcessiveRepetition(name);
+        };
+
+        if (formData.name.trim().length < 3) newErrors.name = 'Name must be at least 3 characters';
+        if (isRepeated(formData.name) || isJunkName(formData.name)) newErrors.name = 'Please enter a valid full name';
+        
+        if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Please enter a valid 10-digit WhatsApp number';
+        if (isRepeated(formData.phone)) newErrors.phone = 'Please enter a valid phone number';
+        
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email address';
+        } else if (formData.email.toLowerCase().includes('toletboardchennai.com')) {
+            newErrors.email = 'This email address is reserved for system use';
+        }
+
+        if (!formData.tenantType) newErrors.tenantType = 'Please select your tenant profile';
+        if (selectedAreas.length === 0) newErrors.preferredAreas = 'Please select at least one area';
+        if (!formData.propertyType) newErrors.propertyType = 'Please select preferred property type';
+        if (!formData.budgetRange) newErrors.budgetRange = 'Please select your budget';
+        if (!formData.bedrooms) newErrors.bedrooms = 'Please select BHK requirement';
+        if (!formData.moveInDate) newErrors.moveInDate = 'Please select move-in date';
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validate()) return;
         setLoading(true);
         try {
             const res = await fetch('/api/forms/submit', {
@@ -142,8 +178,8 @@ export default function TenantFormPage() {
                 <form onSubmit={handleSubmit} className="space-y-8 bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-6 sm:p-10 border border-gray-100 dark:border-gray-800">
                     {/* Basic Info */}
                     <div className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
                                 Your Name <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -153,13 +189,14 @@ export default function TenantFormPage() {
                                 value={formData.name}
                                 onChange={handleChange}
                                 placeholder="Enter your full name"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none ${errors.name ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500'}`}
                             />
+                            {errors.name && <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider">{errors.name}</p>}
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                                Whatsapp Number <span className="text-red-500">*</span>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
+                                WhatsApp Number <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="tel"
@@ -167,9 +204,10 @@ export default function TenantFormPage() {
                                 required
                                 value={formData.phone}
                                 onChange={handleChange}
-                                placeholder="Enter your WhatsApp num..."
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                placeholder="10-digit WhatsApp number"
+                                className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none ${errors.phone ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500'}`}
                             />
+                            {errors.phone && <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider">{errors.phone}</p>}
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -196,8 +234,9 @@ export default function TenantFormPage() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="Enter your email address"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none ${errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500'}`}
                             />
+                            {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{errors.email}</p>}
                         </div>
                     </div>
 
@@ -214,7 +253,7 @@ export default function TenantFormPage() {
                                     onClick={() => handleSelect('tenantType', type.label)}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-left ${formData.tenantType === type.label
                                             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                                            : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-primary-200'
+                                            : errors.tenantType ? 'border-red-500 bg-red-50/50' : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-primary-200'
                                         }`}
                                 >
                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${formData.tenantType === type.label ? 'border-primary-500 bg-primary-500' : 'border-gray-300'}`}>
@@ -224,6 +263,7 @@ export default function TenantFormPage() {
                                 </button>
                             ))}
                         </div>
+                        {errors.tenantType && <p className="text-red-500 text-[10px] font-bold mt-2 uppercase tracking-wider">{errors.tenantType}</p>}
                     </div>
 
                     {/* Preferred Areas */}
@@ -261,8 +301,9 @@ export default function TenantFormPage() {
                                         setShowAreaDropdown(true);
                                     }}
                                     onFocus={() => setShowAreaDropdown(true)}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                                    className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none ${errors.preferredAreas ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500'}`}
                                 />
+                                {errors.preferredAreas && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{errors.preferredAreas}</p>}
                                 {showAreaDropdown && areaSearch && (
                                     <div className="absolute z-50 w-full mt-2 max-h-60 overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl custom-scrollbar animate-fade-in">
                                         {CHENNAI_AREAS.filter(a => 
@@ -301,7 +342,7 @@ export default function TenantFormPage() {
                                     onClick={() => handleSelect('propertyType', type.label)}
                                     className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl border-2 transition-all ${formData.propertyType === type.label
                                             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                            : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 hover:border-primary-200'
+                                            : errors.propertyType ? 'border-red-500 bg-red-50/50' : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 hover:border-primary-200'
                                         }`}
                                 >
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${formData.propertyType === type.label ? 'bg-primary-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
@@ -313,6 +354,7 @@ export default function TenantFormPage() {
                                 </button>
                             ))}
                         </div>
+                        {errors.propertyType && <p className="text-red-500 text-[10px] font-bold mt-2 uppercase tracking-wider">{errors.propertyType}</p>}
                     </div>
 
                     {/* Budget */}
@@ -325,13 +367,14 @@ export default function TenantFormPage() {
                             required
                             value={formData.budgetRange}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                            className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none ${errors.budgetRange ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500'}`}
                         >
                             <option value="">Select budget range</option>
                             {BUDGET_RANGES.map(range => (
                                 <option key={range} value={range}>{range}</option>
                             ))}
                         </select>
+                        {errors.budgetRange && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{errors.budgetRange}</p>}
                     </div>
 
                     {/* Bedrooms */}
@@ -347,7 +390,7 @@ export default function TenantFormPage() {
                                     onClick={() => handleSelect('bedrooms', opt.label)}
                                     className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl border-2 transition-all ${formData.bedrooms === opt.label
                                             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                            : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 hover:border-primary-200'
+                                            : errors.bedrooms ? 'border-red-500 bg-red-50/50' : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 hover:border-primary-200'
                                         }`}
                                 >
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${formData.bedrooms === opt.label ? 'bg-primary-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
@@ -359,6 +402,7 @@ export default function TenantFormPage() {
                                 </button>
                             ))}
                         </div>
+                        {errors.bedrooms && <p className="text-red-500 text-[10px] font-bold mt-2 uppercase tracking-wider">{errors.bedrooms}</p>}
                     </div>
 
                     {/* Move-in Date */}
@@ -372,8 +416,9 @@ export default function TenantFormPage() {
                             required
                             value={formData.moveInDate}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 transition-all outline-none"
+                            className={`w-full px-4 py-3 rounded-xl border transition-all bg-gray-50 dark:bg-gray-800 outline-none ${errors.moveInDate ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500'}`}
                         />
+                        {errors.moveInDate && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-wider">{errors.moveInDate}</p>}
                     </div>
 
                     <div className="pt-4">

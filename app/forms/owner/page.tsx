@@ -66,15 +66,25 @@ export default function OwnerOnboardingForm() {
         const newErrors: Record<string, string> = {};
         
         const isRepeated = (str: string) => /^(.)\1+$/.test(str.toLowerCase().trim());
+        const hasExcessiveRepetition = (str: string) => /(.)\1{3,}/.test(str.toLowerCase().trim());
+        const isJunkName = (name: string) => {
+            const junkKeywords = ['test', 'demo', 'junk', 'fake', 'admin', 'development', 'mobile app', 'agency', 'service', 'company', '9999', '0000'];
+            const lower = name.toLowerCase();
+            return junkKeywords.some(k => lower.includes(k)) || hasExcessiveRepetition(name);
+        };
 
         if (currentStep === 1) {
             if (formData.name.trim().length < 3) newErrors.name = 'Name must be at least 3 characters';
-            if (isRepeated(formData.name)) newErrors.name = 'Please enter a valid name';
+            if (isRepeated(formData.name) || isJunkName(formData.name)) newErrors.name = 'Please enter a valid full name';
             
             if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Please enter a valid 10-digit WhatsApp number';
             if (isRepeated(formData.phone)) newErrors.phone = 'Please enter a valid phone number';
             
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Please enter a valid email address';
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                newErrors.email = 'Please enter a valid email address';
+            } else if (formData.email.toLowerCase().includes('toletboardchennai.com')) {
+                newErrors.email = 'This email address is reserved for system use';
+            }
             
             if (formData.propertyAddress.trim().length < 15) newErrors.propertyAddress = 'Please enter a more detailed property address';
             if (isRepeated(formData.propertyAddress.replace(/\s/g, ''))) newErrors.propertyAddress = 'Please enter a valid address';
