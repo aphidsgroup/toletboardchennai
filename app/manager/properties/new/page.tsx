@@ -8,6 +8,13 @@ export default async function ManagerNewPropertyPage() {
         redirect('/login');
     }
 
+    if (session.role === 'manager') {
+        const { prisma } = await import('@/lib/db');
+        const mgr = await prisma.manager.findUnique({ where: { id: session.userId }, select: { permissions: true } });
+        const perms = mgr?.permissions ? JSON.parse(mgr.permissions) : {};
+        if (!perms.addProperties) redirect('/manager');
+    }
+
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="container mx-auto px-4 py-8 max-w-4xl">

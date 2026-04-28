@@ -7,6 +7,8 @@ interface ManagerPermissions {
     viewLeads: boolean;
     viewUsers: boolean;
     viewProperties: boolean;
+    addProperties: boolean;
+    editProperties: boolean;
 }
 
 interface Manager {
@@ -22,6 +24,8 @@ const defaultPermissions: ManagerPermissions = {
     viewLeads: true,
     viewUsers: true,
     viewProperties: true,
+    addProperties: false,
+    editProperties: false,
 };
 
 function parsePermissions(raw: string | null): ManagerPermissions {
@@ -36,7 +40,7 @@ export default function AdminManagersPage() {
     const [managers, setManagers] = useState<Manager[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateForm, setShowCreateForm] = useState(false);
-    const [createForm, setCreateForm] = useState({ name: '', email: '', password: '' });
+    const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', permissions: defaultPermissions });
     const [createError, setCreateError] = useState('');
     const [creating, setCreating] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -71,7 +75,7 @@ export default function AdminManagersPage() {
             setCreateError(data.error);
         } else {
             setManagers(prev => [data.manager, ...prev]);
-            setCreateForm({ name: '', email: '', password: '' });
+            setCreateForm({ name: '', email: '', password: '', permissions: defaultPermissions });
             setShowCreateForm(false);
         }
         setCreating(false);
@@ -217,6 +221,27 @@ export default function AdminManagersPage() {
                             onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
                             className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500"
                         />
+                        <div className="sm:col-span-3">
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Initial Permissions</label>
+                            <div className="flex flex-wrap gap-2">
+                                {(Object.keys(defaultPermissions) as Array<keyof ManagerPermissions>).map(key => (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => setCreateForm(prev => ({
+                                            ...prev,
+                                            permissions: { ...prev.permissions, [key]: !prev.permissions[key] }
+                                        }))}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all ${createForm.permissions[key]
+                                                ? 'bg-primary-50 border-primary-500 text-primary-700'
+                                                : 'bg-gray-50 border-gray-200 text-gray-400'
+                                            }`}
+                                    >
+                                        {createForm.permissions[key] ? '✓' : '×'} {key.replace('view', '')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         <div className="sm:col-span-3 flex gap-3">
                             <button
                                 type="submit"
@@ -320,6 +345,8 @@ export default function AdminManagersPage() {
                                                     { key: 'viewLeads' as keyof ManagerPermissions, label: 'View Lead Responses', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
                                                     { key: 'viewUsers' as keyof ManagerPermissions, label: 'View Registered Users', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
                                                     { key: 'viewProperties' as keyof ManagerPermissions, label: 'View Properties', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5' },
+                                                    { key: 'addProperties' as keyof ManagerPermissions, label: 'Add New Properties', icon: 'M12 4v16m8-8H4' },
+                                                    { key: 'editProperties' as keyof ManagerPermissions, label: 'Edit Properties', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
                                                 ]).map(({ key, label, icon }) => (
                                                     <button
                                                         key={key}

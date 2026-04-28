@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 interface Lead { id:string; name:string; phone:string; email:string|null; lookingFor:string; propertyType:string|null; budgetRange:string|null; preferredArea:string|null; message:string|null; createdAt:string; }
 interface User { id:string; name:string; email:string|null; phone:string; whatsappNumber:string|null; createdAt:string; shortlists:{id:string;propertyId:string;property:{title:string;slug:string}}[]; }
 interface PropertyItem { id:string; title:string; slug:string; areaName:string; dealType:string; usageType:string; priceInr:number; isPublished:boolean; isRentedOut?:boolean; createdAt:string; }
-interface Permissions { viewLeads:boolean; viewUsers:boolean; viewProperties:boolean; }
+interface Permissions { viewLeads:boolean; viewUsers:boolean; viewProperties:boolean; addProperties:boolean; editProperties:boolean; }
 
 export default function ManagerDashboard() {
     const [leads, setLeads] = useState<Lead[]>([]);
@@ -13,7 +13,7 @@ export default function ManagerDashboard() {
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<'leads'|'users'|'properties'>('leads');
     const [authorized, setAuthorized] = useState(true);
-    const [permissions, setPermissions] = useState<Permissions>({ viewLeads:true, viewUsers:true, viewProperties:true });
+    const [permissions, setPermissions] = useState<Permissions>({ viewLeads:true, viewUsers:true, viewProperties:true, addProperties:false, editProperties:false });
 
     useEffect(() => {
         fetch('/api/auth/me').then(r=>r.json()).then(data => {
@@ -21,8 +21,8 @@ export default function ManagerDashboard() {
                 setAuthorized(false); window.location.href = '/manager/login'; return;
             }
             const perms = data.user.role === 'admin'
-                ? { viewLeads:true, viewUsers:true, viewProperties:true }
-                : (data.user.permissions || { viewLeads:true, viewUsers:true, viewProperties:true });
+                ? { viewLeads:true, viewUsers:true, viewProperties:true, addProperties:true, editProperties:true }
+                : (data.user.permissions || { viewLeads:true, viewUsers:true, viewProperties:true, addProperties:false, editProperties:false });
             setPermissions(perms);
             const fetches:Promise<void>[] = [];
             if (perms.viewLeads) fetches.push(fetch('/api/leads').then(r=>r.json()).then(d=>setLeads(d.leads||[])));
@@ -81,7 +81,7 @@ export default function ManagerDashboard() {
                                 <a href="/manager/leads/tenant" className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-lg">Tenant Leads</a>
                             </>
                         )}
-                        {tab === 'properties' && permissions.viewProperties && (
+                        {tab === 'properties' && permissions.viewProperties && permissions.addProperties && (
                             <a href="/manager/properties/new" className="flex items-center gap-1 px-3 py-1.5 bg-primary-500 text-white text-xs font-semibold rounded-lg">+ Add</a>
                         )}
                         <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/manager/login';}} className="p-2 text-gray-400 hover:text-gray-600">
@@ -195,18 +195,20 @@ export default function ManagerDashboard() {
                                         <div className="text-sm font-bold text-primary-600 dark:text-primary-400 mb-3">
                                             ₹{prop.priceInr?.toLocaleString('en-IN')}/mo
                                         </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <a href={`/manager/properties/${prop.id}/edit`} className="flex items-center justify-center gap-1 py-2.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl text-xs font-semibold">
-                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                Edit
-                                            </a>
-                                            <button onClick={()=>toggleRentedOut(prop)} className={`flex items-center justify-center py-2.5 rounded-xl text-xs font-semibold ${prop.isRentedOut ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
-                                                {prop.isRentedOut ? 'Unhide' : 'Rented Out'}
-                                            </button>
-                                            <button onClick={()=>requestDeletion(prop)} className="flex items-center justify-center py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold">
-                                                Delete
-                                            </button>
-                                        </div>
+                                        {permissions.editProperties && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <a href={`/manager/properties/${prop.id}/edit`} className="flex items-center justify-center gap-1 py-2.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl text-xs font-semibold">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                    Edit
+                                                </a>
+                                                <button onClick={()=>toggleRentedOut(prop)} className={`flex items-center justify-center py-2.5 rounded-xl text-xs font-semibold ${prop.isRentedOut ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                                                    {prop.isRentedOut ? 'Unhide' : 'Rented Out'}
+                                                </button>
+                                                <button onClick={()=>requestDeletion(prop)} className="flex items-center justify-center py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold">
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

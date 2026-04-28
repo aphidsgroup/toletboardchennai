@@ -14,6 +14,12 @@ export default async function ManagerEditPropertyPage({ params }: EditPropertyPa
         redirect('/login');
     }
 
+    if (session.role === 'manager') {
+        const mgr = await prisma.manager.findUnique({ where: { id: session.userId }, select: { permissions: true } });
+        const perms = mgr?.permissions ? JSON.parse(mgr.permissions) : {};
+        if (!perms.editProperties) redirect('/manager');
+    }
+
     const { id } = await params;
     const property = await prisma.property.findUnique({ where: { id } });
 
