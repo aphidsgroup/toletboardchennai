@@ -242,9 +242,6 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                     );})}
                 </div>
             )}
-                </div>
-            )}
-
             {/* Add Lead Modal */}
             {showForm && <AddLeadModal leadType={leadType} onClose={()=>setShowForm(false)} onAdded={()=>{setShowForm(false);fetchLeads();}} />}
             {/* Edit Lead Modal */}
