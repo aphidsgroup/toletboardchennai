@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import LeadsImportModal from './LeadsImportModal';
 
 const STATUSES = [
     { value: 'new', label: 'New', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -32,6 +33,7 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
     const [noteText, setNoteText] = useState('');
     const [editingNote, setEditingNote] = useState<{leadId:string;index:number}|null>(null);
     const [editNoteText, setEditNoteText] = useState('');
+    const [showImport, setShowImport] = useState(false);
 
     const fetchLeads = () => {
         const params = new URLSearchParams({ type: leadType });
@@ -138,7 +140,16 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{totalCount} total lead{totalCount!==1?'s':''}</p>
                 </div>
-                <button onClick={()=>setShowForm(true)} className="btn-premium px-4 py-2.5 rounded-xl text-sm font-semibold">+ Add Lead</button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <button
+                        onClick={() => setShowImport(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        Import Sheet
+                    </button>
+                    <button onClick={()=>setShowForm(true)} className="btn-premium px-4 py-2.5 rounded-xl text-sm font-semibold">+ Add Lead</button>
+                </div>
             </div>
 
             {/* Status Pills */}
@@ -234,6 +245,8 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
             {showForm && <AddLeadModal leadType={leadType} onClose={()=>setShowForm(false)} onAdded={()=>{setShowForm(false);fetchLeads();}} />}
             {/* Edit Lead Modal */}
             {editLead && <EditLeadModal lead={editLead} leadType={leadType} role={role} onClose={()=>setEditLead(null)} onSaved={()=>{setEditLead(null);fetchLeads();}} />}
+            {/* Import Sheet Modal */}
+            {showImport && <LeadsImportModal leadType={leadType} onClose={()=>setShowImport(false)} onImported={()=>{setShowImport(false);fetchLeads();}} />}
         </div>
     );
 }
