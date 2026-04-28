@@ -1,423 +1,242 @@
 'use client';
-
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
-interface Lead {
-    id: string;
-    name: string;
-    phone: string;
-    email: string | null;
-    lookingFor: string;
-    propertyType: string | null;
-    budgetRange: string | null;
-    preferredArea: string | null;
-    message: string | null;
-    createdAt: string;
-}
-
-interface User {
-    id: string;
-    name: string;
-    email: string | null;
-    phone: string;
-    whatsappNumber: string | null;
-    createdAt: string;
-    shortlists: { id: string; propertyId: string; property: { title: string; slug: string } }[];
-}
-
-interface PropertyItem {
-    id: string;
-    title: string;
-    slug: string;
-    areaName: string;
-    dealType: string;
-    usageType: string;
-    priceInr: number;
-    isPublished: boolean;
-    createdAt: string;
-}
-
-interface Permissions {
-    viewLeads: boolean;
-    viewUsers: boolean;
-    viewProperties: boolean;
-}
+interface Lead { id:string; name:string; phone:string; email:string|null; lookingFor:string; propertyType:string|null; budgetRange:string|null; preferredArea:string|null; message:string|null; createdAt:string; }
+interface User { id:string; name:string; email:string|null; phone:string; whatsappNumber:string|null; createdAt:string; shortlists:{id:string;propertyId:string;property:{title:string;slug:string}}[]; }
+interface PropertyItem { id:string; title:string; slug:string; areaName:string; dealType:string; usageType:string; priceInr:number; isPublished:boolean; isRentedOut?:boolean; createdAt:string; }
+interface Permissions { viewLeads:boolean; viewUsers:boolean; viewProperties:boolean; }
 
 export default function ManagerDashboard() {
-    const router = useRouter();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [properties, setProperties] = useState<PropertyItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'leads' | 'users' | 'properties'>('leads');
+    const [tab, setTab] = useState<'leads'|'users'|'properties'>('leads');
     const [authorized, setAuthorized] = useState(true);
-    const [permissions, setPermissions] = useState<Permissions>({
-        viewLeads: true,
-        viewUsers: true,
-        viewProperties: true,
-    });
+    const [permissions, setPermissions] = useState<Permissions>({ viewLeads:true, viewUsers:true, viewProperties:true });
 
     useEffect(() => {
-        fetch('/api/auth/me')
-            .then(res => res.json())
-            .then(data => {
-                if (!data.user || (data.user.role !== 'manager' && data.user.role !== 'admin')) {
-                    setAuthorized(false);
-                    window.location.href = '/manager/login';
-                    return;
-                }
+        fetch('/api/auth/me').then(r=>r.json()).then(data => {
+            if (!data.user || (data.user.role !== 'manager' && data.user.role !== 'admin')) {
+                setAuthorized(false); window.location.href = '/manager/login'; return;
+            }
+            const perms = data.user.role === 'admin'
+                ? { viewLeads:true, viewUsers:true, viewProperties:true }
+                : (data.user.permissions || { viewLeads:true, viewUsers:true, viewProperties:true });
+            setPermissions(perms);
+            const fetches:Promise<void>[] = [];
+            if (perms.viewLeads) fetches.push(fetch('/api/leads').then(r=>r.json()).then(d=>setLeads(d.leads||[])));
+            if (perms.viewUsers) fetches.push(fetch('/api/manager/users').then(r=>r.json()).then(d=>setUsers(d.users||[])));
+            if (perms.viewProperties) fetches.push(fetch('/api/manager/properties').then(r=>r.json()).then(d=>setProperties(d.properties||[])));
+            Promise.all(fetches).then(()=>setLoading(false));
+            if (!perms.viewLeads && perms.viewUsers) setTab('users');
+            else if (!perms.viewLeads && !perms.viewUsers && perms.viewProperties) setTab('properties');
+        }).catch(()=>{ setAuthorized(false); window.location.href='/manager/login'; });
+    }, []);
 
-                // Set permissions (admin gets all)
-                if (data.user.role === 'admin') {
-                    setPermissions({ viewLeads: true, viewUsers: true, viewProperties: true });
-                } else if (data.user.permissions) {
-                    setPermissions(data.user.permissions);
-                }
-
-                // Fetch data based on permissions
-                const perms = data.user.role === 'admin'
-                    ? { viewLeads: true, viewUsers: true, viewProperties: true }
-                    : (data.user.permissions || { viewLeads: true, viewUsers: true, viewProperties: true });
-
-                const fetches: Promise<void>[] = [];
-
-                if (perms.viewLeads) {
-                    fetches.push(
-                        fetch('/api/leads').then(r => r.json()).then(d => setLeads(d.leads || []))
-                    );
-                }
-                if (perms.viewUsers) {
-                    fetches.push(
-                        fetch('/api/manager/users').then(r => r.json()).then(d => setUsers(d.users || []))
-                    );
-                }
-
-                if (perms.viewProperties) {
-                    fetches.push(
-                        fetch('/api/manager/properties').then(r => r.json()).then(d => setProperties(d.properties || []))
-                    );
-                }
-
-                Promise.all(fetches).then(() => setLoading(false));
-
-                // Set default tab to first permitted
-                if (!perms.viewLeads && perms.viewUsers) setTab('users');
-                else if (!perms.viewLeads && !perms.viewUsers && perms.viewProperties) setTab('properties');
-            })
-            .catch(() => {
-                setAuthorized(false);
-                window.location.href = '/manager/login';
-            });
-    }, [router]);
-
-    if (!authorized || loading) {
-        return (
-            <main className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-                <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" />
-            </main>
-        );
-    }
+    if (!authorized || loading) return (
+        <main className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+            <div className="animate-spin w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full" />
+        </main>
+    );
 
     const noAccess = !permissions.viewLeads && !permissions.viewUsers && !permissions.viewProperties;
 
-    const requestDeletion = async (prop: PropertyItem) => {
+    const requestDeletion = async (prop:PropertyItem) => {
         const reason = prompt(`Why should "${prop.title}" be deleted?`);
         if (reason === null) return;
-        await fetch('/api/admin/change-requests', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'delete_property', entityType: 'property', entityId: prop.id, entityTitle: prop.title, requestedBy: 'Manager', reason }),
-        });
-        alert('Deletion request sent to admin for approval.');
+        await fetch('/api/admin/change-requests', { method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ type:'delete_property', entityType:'property', entityId:prop.id, entityTitle:prop.title, requestedBy:'Manager', reason }) });
+        alert('Deletion request sent to admin.');
     };
 
-    const toggleRentedOut = async (prop: PropertyItem) => {
-        const newVal = !(prop as any).isRentedOut;
-        await fetch('/api/admin/change-requests', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'edit_property', entityType: 'property', entityId: prop.id, entityTitle: prop.title, changes: { isRentedOut: newVal, isPublished: !newVal }, requestedBy: 'Manager' }),
-        });
-        alert('Rented out change request sent to admin for approval.');
+    const toggleRentedOut = async (prop:PropertyItem) => {
+        const newVal = !prop.isRentedOut;
+        await fetch('/api/admin/change-requests', { method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ type:'edit_property', entityType:'property', entityId:prop.id, entityTitle:prop.title, changes:{ isRentedOut:newVal, isPublished:!newVal }, requestedBy:'Manager' }) });
+        alert('Change request sent to admin.');
     };
+
+    const tabs = [
+        ...(permissions.viewLeads ? [{ key:'leads' as const, label:'Leads', count:leads.length, icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' }] : []),
+        ...(permissions.viewUsers ? [{ key:'users' as const, label:'Users', count:users.length, icon:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }] : []),
+        ...(permissions.viewProperties ? [{ key:'properties' as const, label:'Properties', count:properties.length, icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' }] : []),
+    ];
 
     return (
-        <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <main className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
             {/* Top Header */}
-                <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manager Dashboard</h1>
-                    <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">Logout</button>
+            <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center justify-between px-4 h-14">
+                    <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-primary-500 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <span className="font-bold text-gray-900 dark:text-white text-base">Manager</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {tab === 'leads' && permissions.viewLeads && (
+                            <>
+                                <a href="/manager/leads/owner" className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-lg">Owner Leads</a>
+                                <a href="/manager/leads/tenant" className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-lg">Tenant Leads</a>
+                            </>
+                        )}
+                        {tab === 'properties' && permissions.viewProperties && (
+                            <a href="/manager/properties/new" className="flex items-center gap-1 px-3 py-1.5 bg-primary-500 text-white text-xs font-semibold rounded-lg">+ Add</a>
+                        )}
+                        <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/manager/login';}} className="p-2 text-gray-400 hover:text-gray-600">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        </button>
+                    </div>
                 </div>
+            </header>
 
+            <div className="px-4 py-4 max-w-2xl mx-auto">
                 {noAccess ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-12 text-center">
-                        <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Access</h2>
-                        <p className="text-gray-500 dark:text-gray-400">Your admin has not enabled any dashboard features for your account.</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-12 text-center mt-8">
+                        <p className="text-gray-500">No features enabled. Contact your admin.</p>
                     </div>
                 ) : (
                     <>
-                        {/* Tab Bar with contextual actions */}
-                        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-                            <div className="flex rounded-xl bg-gray-200 dark:bg-gray-700 p-1">
-                                {permissions.viewLeads && (
-                                    <button
-                                        onClick={() => setTab('leads')}
-                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'leads'
-                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                            : 'text-gray-500 dark:text-gray-400'
-                                            }`}
-                                    >
-                                        Lead Responses ({leads.length})
-                                    </button>
-                                )}
-                                {permissions.viewUsers && (
-                                    <button
-                                        onClick={() => setTab('users')}
-                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'users'
-                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                            : 'text-gray-500 dark:text-gray-400'
-                                            }`}
-                                    >
-                                        Users ({users.length})
-                                    </button>
-                                )}
-                                {permissions.viewProperties && (
-                                    <button
-                                        onClick={() => setTab('properties')}
-                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'properties'
-                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                            : 'text-gray-500 dark:text-gray-400'
-                                            }`}
-                                    >
-                                        Properties ({properties.length})
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Contextual action buttons — change based on active tab */}
-                            <div className="flex items-center gap-2">
-                                {tab === 'leads' && permissions.viewLeads && (
-                                    <>
-                                        <a href="/manager/leads/owner" className="px-3 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
-                                            <svg className="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                                            Owner Leads
-                                        </a>
-                                        <a href="/manager/leads/tenant" className="px-3 py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
-                                            <svg className="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                            Tenant Leads
-                                        </a>
-                                    </>
-                                )}
-                                {tab === 'properties' && permissions.viewProperties && (
-                                    <a href="/manager/properties/new" className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-semibold rounded-lg shadow hover:shadow-md transition-all">
-                                        <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
-                                        Add Property
-                                    </a>
-                                )}
-                            </div>
+                        {/* Summary cards */}
+                        <div className="grid grid-cols-3 gap-3 mb-5">
+                            {permissions.viewLeads && <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm text-center"><div className="text-2xl font-extrabold text-primary-600">{leads.length}</div><div className="text-xs text-gray-500 mt-0.5">Responses</div></div>}
+                            {permissions.viewUsers && <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm text-center"><div className="text-2xl font-extrabold text-indigo-600">{users.length}</div><div className="text-xs text-gray-500 mt-0.5">Users</div></div>}
+                            {permissions.viewProperties && <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm text-center"><div className="text-2xl font-extrabold text-emerald-600">{properties.length}</div><div className="text-xs text-gray-500 mt-0.5">Properties</div></div>}
                         </div>
 
                         {/* Leads Tab */}
                         {tab === 'leads' && permissions.viewLeads && (
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden">
-                                {leads.length === 0 ? (
-                                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                                        No lead responses yet
+                            <div className="space-y-3">
+                                {leads.length === 0 ? <EmptyState text="No lead responses yet" /> : leads.map(lead => (
+                                    <div key={lead.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+                                        <div className="flex items-start justify-between gap-2 mb-3">
+                                            <div>
+                                                <div className="font-semibold text-gray-900 dark:text-white">{lead.name}</div>
+                                                {lead.email && <div className="text-xs text-gray-500 mt-0.5 truncate">{lead.email}</div>}
+                                            </div>
+                                            <span className={`flex-shrink-0 px-2 py-1 rounded-full text-xs font-semibold ${lead.lookingFor==='rent' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{lead.lookingFor}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400 mb-3">
+                                            {lead.preferredArea && <div><span className="text-gray-400">Area:</span> {lead.preferredArea}</div>}
+                                            {lead.budgetRange && <div><span className="text-gray-400">Budget:</span> {lead.budgetRange}</div>}
+                                            {lead.propertyType && <div><span className="text-gray-400">Type:</span> {lead.propertyType}</div>}
+                                            <div><span className="text-gray-400">Date:</span> {new Date(lead.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <a href={`tel:${lead.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl text-sm font-semibold">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                Call
+                                            </a>
+                                            <a href={`https://wa.me/${lead.phone}`} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-sm font-semibold">
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.4 0-4.637-.856-6.358-2.282l-.446-.37-3.07 1.03 1.03-3.07-.37-.446A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                                WhatsApp
+                                            </a>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-sm">
-                                            <thead className="bg-gray-50 dark:bg-gray-750">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Name</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Phone</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Looking For</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Type</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Budget</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Area</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                                {leads.map((lead) => (
-                                                    <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                        <td className="px-4 py-3">
-                                                            <div className="font-medium text-gray-900 dark:text-white">{lead.name}</div>
-                                                            {lead.email && <div className="text-xs text-gray-500">{lead.email}</div>}
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <a href={`tel:${lead.phone}`} className="text-primary-600 dark:text-primary-400 hover:underline">
-                                                                {lead.phone}
-                                                            </a>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${lead.lookingFor === 'rent'
-                                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                                : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                                                                }`}>
-                                                                {lead.lookingFor}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{lead.propertyType || '—'}</td>
-                                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{lead.budgetRange || '—'}</td>
-                                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{lead.preferredArea || '—'}</td>
-                                                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
-                                                            {new Date(lead.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         )}
 
                         {/* Users Tab */}
                         {tab === 'users' && permissions.viewUsers && (
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden">
-                                {users.length === 0 ? (
-                                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                                        No registered users yet
+                            <div className="space-y-3">
+                                {users.length === 0 ? <EmptyState text="No registered users yet" /> : users.map(user => (
+                                    <div key={user.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div>
+                                                <div className="font-semibold text-gray-900 dark:text-white">{user.name}</div>
+                                                {user.email && <div className="text-xs text-gray-500 truncate">{user.email}</div>}
+                                            </div>
+                                            <span className="text-xs text-gray-400">{new Date(user.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+                                        </div>
+                                        {user.shortlists.length > 0 && (
+                                            <div className="mb-3">
+                                                <div className="text-xs font-semibold text-gray-500 mb-1">Shortlisted ({user.shortlists.length})</div>
+                                                <div className="space-y-1">
+                                                    {user.shortlists.map(s=>(
+                                                        <a key={s.id} href={`/p/${s.property.slug}`} target="_blank" className="block text-xs text-primary-600 truncate">{s.property.title}</a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="flex gap-2">
+                                            <a href={`tel:${user.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl text-sm font-semibold">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                Call
+                                            </a>
+                                            {user.whatsappNumber && (
+                                                <a href={`https://wa.me/${user.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-sm font-semibold">
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.4 0-4.637-.856-6.358-2.282l-.446-.37-3.07 1.03 1.03-3.07-.37-.446A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                                    WhatsApp
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-sm">
-                                            <thead className="bg-gray-50 dark:bg-gray-750">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Name</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Phone</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">WhatsApp</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Shortlists</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Joined</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                                {users.map((user) => (
-                                                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{user.name}</td>
-                                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{user.phone}</td>
-                                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{user.whatsappNumber || '—'}</td>
-                                                        <td className="px-4 py-3">
-                                                            {user.shortlists.length > 0 ? (
-                                                                <div className="space-y-1">
-                                                                    {user.shortlists.map(s => (
-                                                                        <a
-                                                                            key={s.id}
-                                                                            href={`/p/${s.property.slug}`}
-                                                                            target="_blank"
-                                                                            className="block text-xs text-primary-600 dark:text-primary-400 hover:underline truncate max-w-[200px]"
-                                                                        >
-                                                                            {s.property.title}
-                                                                        </a>
-                                                                    ))}
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-gray-400 text-xs">None</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
-                                                            {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         )}
 
                         {/* Properties Tab */}
                         {tab === 'properties' && permissions.viewProperties && (
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden">
-                                {properties.length === 0 ? (
-                                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                                        No properties found
+                            <div className="space-y-3">
+                                {properties.length === 0 ? <EmptyState text="No properties found" /> : properties.map(prop => (
+                                    <div key={prop.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-gray-900 dark:text-white text-sm leading-snug">{prop.title}</div>
+                                                <div className="text-xs text-gray-500 mt-0.5">{prop.areaName} · {new Date(prop.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${prop.isPublished ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{prop.isPublished ? 'Live' : 'Draft'}</span>
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${prop.dealType==='rent' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{prop.dealType}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-sm font-bold text-primary-600 dark:text-primary-400 mb-3">
+                                            ₹{prop.priceInr?.toLocaleString('en-IN')}/mo
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <a href={`/manager/properties/${prop.id}/edit`} className="flex items-center justify-center gap-1 py-2.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl text-xs font-semibold">
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                Edit
+                                            </a>
+                                            <button onClick={()=>toggleRentedOut(prop)} className={`flex items-center justify-center py-2.5 rounded-xl text-xs font-semibold ${prop.isRentedOut ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                                                {prop.isRentedOut ? 'Unhide' : 'Rented Out'}
+                                            </button>
+                                            <button onClick={()=>requestDeletion(prop)} className="flex items-center justify-center py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-semibold">
+                                                Delete
+                                            </button>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-sm">
-                                            <thead className="bg-gray-50 dark:bg-gray-750">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Property</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Area</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Type</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Status</th>
-                                                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                                {properties.map((prop) => (
-                                                    <tr key={prop.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                                                        <td className="px-4 py-3">
-                                                            <div className="font-medium text-gray-900 dark:text-white">{prop.title}</div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {new Date(prop.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{prop.areaName}</td>
-                                                        <td className="px-4 py-3">
-                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${prop.dealType === 'rent'
-                                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                                    : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                                                                }`}>
-                                                                {prop.dealType}
-                                                            </span>
-                                                            <span className="ml-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                                                {prop.usageType}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${prop.isPublished
-                                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                                    : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                                                }`}>
-                                                                {prop.isPublished ? 'Published' : 'Draft'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <a
-                                                                    href={`/manager/properties/${prop.id}/edit`}
-                                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-xs font-semibold rounded-lg hover:bg-primary-100 transition-colors"
-                                                                >
-                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                    </svg>
-                                                                    Edit
-                                                                </a>
-                                                                <button
-                                                                    onClick={() => toggleRentedOut(prop)}
-                                                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${(prop as any).isRentedOut
-                                                                        ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100'
-                                                                        : 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100'
-                                                                    }`}
-                                                                >
-                                                                    {(prop as any).isRentedOut ? 'Unhide' : 'Rented Out'}
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => requestDeletion(prop)}
-                                                                    className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg hover:bg-red-100 transition-colors"
-                                                                >
-                                                                    Request Delete
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         )}
                     </>
                 )}
             </div>
+
+            {/* Sticky Bottom Tab Bar */}
+            {!noAccess && (
+                <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-area-bottom">
+                    <div className="flex">
+                        {tabs.map(t => (
+                            <button key={t.key} onClick={()=>setTab(t.key)} className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${tab===t.key ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`}>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={t.icon}/></svg>
+                                <span className="text-xs font-semibold">{t.label}</span>
+                                <span className={`text-xs px-1.5 rounded-full ${tab===t.key ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>{t.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                </nav>
+            )}
         </main>
+    );
+}
+
+function EmptyState({ text }:{ text:string }) {
+    return (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-10 text-center border border-gray-100 dark:border-gray-700">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">{text}</p>
+        </div>
     );
 }

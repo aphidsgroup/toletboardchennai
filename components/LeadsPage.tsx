@@ -133,38 +133,38 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full"/></div>;
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                    <Link href={backHref} className="text-sm text-primary-600 dark:text-primary-400 hover:underline mb-1 inline-block">← Back to Dashboard</Link>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{totalCount} total lead{totalCount!==1?'s':''}</p>
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
+            {/* Header */}
+            <div className="flex flex-col gap-3 mb-5">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <Link href={backHref} className="text-sm text-primary-600 dark:text-primary-400 hover:underline mb-0.5 inline-block">← Back</Link>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">{title}</h1>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{totalCount} lead{totalCount!==1?'s':''}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5">
+                        <button onClick={()=>setShowImport(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-colors">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                            Import Sheet
+                        </button>
+                        <button onClick={()=>setShowForm(true)} className="btn-premium px-3 py-2 rounded-xl text-xs font-semibold">+ Add Lead</button>
+                    </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    <button
-                        onClick={() => setShowImport(true)}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                        Import Sheet
-                    </button>
-                    <button onClick={()=>setShowForm(true)} className="btn-premium px-4 py-2.5 rounded-xl text-sm font-semibold">+ Add Lead</button>
-                </div>
+
+                {/* Search — full width on mobile */}
+                <form onSubmit={handleSearch} className="flex gap-2">
+                    <input type="text" inputMode="search" placeholder="Search name, phone, area..." value={search} onChange={e=>setSearch(e.target.value)} className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"/>
+                    <button type="submit" className="px-4 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl text-sm font-semibold">Go</button>
+                </form>
             </div>
 
-            {/* Status Pills */}
-            <div className="flex flex-wrap gap-2 mb-6">
-                <button onClick={()=>setFilterStatus('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${!filterStatus ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'}`}>All ({totalCount})</button>
+            {/* Status Pills — horizontally scrollable on mobile */}
+            <div className="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-3 sm:mx-0 px-3 sm:px-0 snap-x scrollbar-none">
+                <button onClick={()=>setFilterStatus('')} className={`flex-shrink-0 snap-start px-3 py-2 rounded-full text-xs font-semibold transition-all ${!filterStatus ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>All ({totalCount})</button>
                 {STATUSES.slice(0,7).map(s=>(
-                    <button key={s.value} onClick={()=>setFilterStatus(s.value)} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterStatus===s.value ? 'ring-2 ring-primary-500 ' : ''}${s.color}`}>{s.label} ({getCount(s.value)})</button>
+                    <button key={s.value} onClick={()=>setFilterStatus(s.value)} className={`flex-shrink-0 snap-start px-3 py-2 rounded-full text-xs font-semibold transition-all ${filterStatus===s.value ? 'ring-2 ring-primary-500 ' : ''}${s.color}`}>{s.label} ({getCount(s.value)})</button>
                 ))}
             </div>
-
-            {/* Search */}
-            <form onSubmit={handleSearch} className="mb-6 flex gap-2">
-                <input type="text" placeholder="Search name, phone, area..." value={search} onChange={e=>setSearch(e.target.value)} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"/>
-                <button type="submit" className="px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl text-sm font-semibold">Search</button>
-            </form>
 
             {/* Lead Cards */}
             {filtered.length === 0 ? (
@@ -214,30 +214,34 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                                         </div>);
                                     })}</div>}
                                 </div>
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                    <select value={lead.status} onChange={e=>updateLead(lead.id,{status:e.target.value})} className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                    <select value={lead.status} onChange={e=>updateLead(lead.id,{status:e.target.value})} className="flex-1 min-w-[130px] px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                         {STATUSES.map(s=>(<option key={s.value} value={s.value}>{s.label}</option>))}
                                     </select>
-                                    <button onClick={()=>setEditLead(lead)} className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Edit Lead"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-                                    <button onClick={()=>{setNoteModal(lead.id);setNoteText('');}} className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Add Note"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg></button>
-                                    <button onClick={()=>switchType(lead.id)} className="p-1.5 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title={`Move to ${leadType==='owner'?'Tenant':'Owner'} Leads`}><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></button>
+                                    <button onClick={()=>setEditLead(lead)} className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors" title="Edit Lead"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                                    <button onClick={()=>{setNoteModal(lead.id);setNoteText('');}} className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors" title="Add Note"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg></button>
+                                    <button onClick={()=>switchType(lead.id)} className="p-2.5 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-colors" title={`Move to ${leadType==='owner'?'Tenant':'Owner'} Leads`}><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></button>
                                     {role === 'admin' ? (
-                                        <button onClick={()=>deleteLead(lead.id)} className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                                        <button onClick={()=>deleteLead(lead.id)} className="p-2.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors" title="Delete"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
                                     ) : lead.status !== 'junk' ? (
-                                        <button onClick={()=>updateLead(lead.id,{status:'junk'})} className="px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Move to Junk">Junk</button>
+                                        <button onClick={()=>updateLead(lead.id,{status:'junk'})} className="px-3 py-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors">Junk</button>
                                     ) : null}
                                 </div>
                             </div>
-                            {/* Note Modal Inline */}
+                            {/* Note input inline */}
                             {noteModal===lead.id && (
-                                <div className="mt-3 flex gap-2">
-                                    <input value={noteText} onChange={e=>setNoteText(e.target.value)} placeholder="Add a follow-up note..." className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"/>
-                                    <button onClick={()=>addNote(lead.id)} className="px-3 py-2 bg-primary-500 text-white rounded-lg text-sm font-semibold">Save</button>
-                                    <button onClick={()=>setNoteModal(null)} className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm">Cancel</button>
+                                <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                                    <input value={noteText} onChange={e=>setNoteText(e.target.value)} placeholder="Add a follow-up note..." className="flex-1 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"/>
+                                    <div className="flex gap-2">
+                                        <button onClick={()=>addNote(lead.id)} className="flex-1 sm:flex-none px-4 py-3 bg-primary-500 text-white rounded-xl text-sm font-semibold">Save</button>
+                                        <button onClick={()=>setNoteModal(null)} className="flex-1 sm:flex-none px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl text-sm">Cancel</button>
+                                    </div>
                                 </div>
                             )}
                         </div>
                     );})}
+                </div>
+            )}
                 </div>
             )}
 
