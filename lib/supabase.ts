@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+// DEPRECATED — Supabase storage has been fully replaced by Cloudinary.
+// This file is kept only as a stub to avoid breaking any legacy imports.
+// See lib/cloudinary.ts and lib/supabase-browser.ts for the new implementation.
 
-// DEPRECATED — this file is kept only to avoid breaking any lingering imports.
-// Image storage has been migrated to Cloudinary.
-// See lib/cloudinary.ts
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder';
-
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export const supabaseAdmin = null;
 export const STORAGE_BUCKET = 'property-images';

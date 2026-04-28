@@ -1,19 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-// Browser-safe Supabase client (uses anon key, no server secrets)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export const STORAGE_BUCKET = 'property-images';
-
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 /**
- * Upload an image directly from the browser to Supabase Storage.
- * Bypasses the Vercel API route (and its 4.5MB limit).
+ * Upload an image via the Next.js API route (which uploads to Cloudinary).
+ * Replaces the old Supabase direct-browser upload.
  */
 export async function uploadImageDirect(file: File): Promise<string> {
     // Validate
@@ -24,28 +14,23 @@ export async function uploadImageDirect(file: File): Promise<string> {
         throw new Error(`File too large: ${file.name}. Maximum: 5MB`);
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 15);
-    const ext = file.name.split('.').pop();
-    const filePath = `properties/${timestamp}-${randomStr}.${ext}`;
+    const formData = new FormData();
+    formData.append('images', file);
 
-    // Upload directly to Supabase Storage
-    const { error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, file, {
-            contentType: file.type,
-            upsert: false,
-        });
+    const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+    });
 
-    if (error) {
-        throw new Error(`Upload failed: ${error.message}`);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+        throw new Error(error.error || 'Upload failed');
     }
 
-    // Get public URL
-    const { data } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(filePath);
+    const data = await response.json();
+    if (!data.paths || data.paths.length === 0) {
+        throw new Error('No URL returned from upload');
+    }
 
-    return data.publicUrl;
+    return data.paths[0];
 }
