@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 async function getStats() {
     try {
-        const [totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, totalUsers] = await Promise.all([
+        const [totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, pendingSubmissions, totalUsers] = await Promise.all([
             prisma.property.count(),
             prisma.property.count({ where: { isPublished: true } }),
             prisma.property.count({ where: { dealType: 'rent', isPublished: true } }),
