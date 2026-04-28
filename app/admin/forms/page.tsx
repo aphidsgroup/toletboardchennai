@@ -221,7 +221,7 @@ function FormsDashboardContent() {
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                                                     {(() => {
                                                         try {
-                                                            let details = selectedSub.propertyDetails;
+                                                            let details: any = selectedSub.propertyDetails;
                                                             // Handle potential double stringification from previous bug
                                                             if (typeof details === 'string' && (details.startsWith('{') || details.startsWith('"'))) {
                                                                 try {
