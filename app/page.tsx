@@ -14,34 +14,42 @@ export const revalidate = 60;
 export const dynamic = 'force-dynamic';
 
 async function getSiteSettings() {
-    const settings = await prisma.siteSettings.upsert({
-        where: { id: 'default' },
-        update: {},
-        create: { id: 'default' },
-    });
-    return settings;
+    try {
+        const settings = await prisma.siteSettings.upsert({
+            where: { id: 'default' },
+            update: {},
+            create: { id: 'default' },
+        });
+        return settings;
+    } catch {
+        return null;
+    }
 }
 
 async function getPublishedProperties() {
-    return await prisma.property.findMany({
-        where: { isPublished: true },
-        orderBy: { createdAt: 'desc' },
-        select: {
-            id: true,
-            slug: true,
-            title: true,
-            dealType: true,
-            usageType: true,
-            areaName: true,
-            city: true,
-            priceInr: true,
-            sizeSqft: true,
-            bedrooms: true,
-            bathrooms: true,
-            images: true,
-            leasePeriodYears: true,
-        },
-    });
+    try {
+        return await prisma.property.findMany({
+            where: { isPublished: true },
+            orderBy: { createdAt: 'desc' },
+            select: {
+                id: true,
+                slug: true,
+                title: true,
+                dealType: true,
+                usageType: true,
+                areaName: true,
+                city: true,
+                priceInr: true,
+                sizeSqft: true,
+                bedrooms: true,
+                bathrooms: true,
+                images: true,
+                leasePeriodYears: true,
+            },
+        });
+    } catch {
+        return [];
+    }
 }
 
 export default async function HomePage() {

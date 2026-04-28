@@ -5,23 +5,30 @@ export const dynamic = 'force-dynamic';
 
 
 async function getStats() {
-    const [totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, totalUsers] = await Promise.all([
-        prisma.property.count(),
-        prisma.property.count({ where: { isPublished: true } }),
-        prisma.property.count({ where: { dealType: 'rent', isPublished: true } }),
-        prisma.property.count({ where: { dealType: 'lease', isPublished: true } }),
-        prisma.leadFormResponse.count(),
-        prisma.user.count(),
-    ]);
-
-    return { totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, totalUsers };
+    try {
+        const [totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, totalUsers] = await Promise.all([
+            prisma.property.count(),
+            prisma.property.count({ where: { isPublished: true } }),
+            prisma.property.count({ where: { dealType: 'rent', isPublished: true } }),
+            prisma.property.count({ where: { dealType: 'lease', isPublished: true } }),
+            prisma.leadFormResponse.count(),
+            prisma.user.count(),
+        ]);
+        return { totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, totalUsers };
+    } catch {
+        return { totalProperties: 0, publishedProperties: 0, rentProperties: 0, leaseProperties: 0, totalLeads: 0, totalUsers: 0 };
+    }
 }
 
 async function getRecentProperties() {
-    return prisma.property.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-    });
+    try {
+        return prisma.property.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+        });
+    } catch {
+        return [];
+    }
 }
 
 export default async function AdminDashboard() {
