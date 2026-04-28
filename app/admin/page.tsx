@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
+
 async function getStats() {
     const [totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, totalUsers] = await Promise.all([
         prisma.property.count(),
