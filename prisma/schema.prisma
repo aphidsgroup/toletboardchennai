@@ -68,6 +68,7 @@ model Property {
 
   isPublished     Boolean  @default(false)
   isFeatured      Boolean  @default(false)
+  isRentedOut     Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -155,4 +156,62 @@ model LeadFormResponse {
   preferredArea String?
   message       String?
   createdAt     DateTime @default(now())
+}
+
+model Lead {
+  id              String    @id @default(cuid())
+  leadType        String    // "owner" or "tenant"
+  source          String    @default("other") // "website","whatsapp","meta_ad","instagram","referral","walk_in","other"
+
+  name            String
+  phone           String
+  email           String?
+  whatsappNumber  String?
+
+  // Owner-specific
+  propertyAddress String?
+  propertyType    String?
+  expectedRent    Int?
+
+  // Tenant-specific
+  lookingFor      String?   // "rent" or "lease"
+  budgetRange     String?
+  preferredArea   String?
+  bhkPreference   String?
+
+  // Status & Follow-up
+  status          String    @default("new")
+  assignedTo      String?
+  followUpDate    DateTime?
+  notes           String?   // JSON: [{date,note,by}]
+
+  // Closure
+  closedVia       String?   // "our_platform","outside_broker","direct","other"
+  closedPropertyId String?
+
+  message         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([leadType])
+  @@index([status])
+  @@index([source])
+}
+model ChangeRequest {
+  id            String   @id @default(cuid())
+  type          String   // "edit_property", "delete_property", "edit_lead", "delete_lead", "status_lead", "switch_lead"
+  entityType    String   // "property" or "lead"
+  entityId      String
+  entityTitle   String   // human-readable label
+  changes       String?  // JSON of proposed changes
+  reason        String?
+  requestedBy   String
+  status        String   @default("pending") // "pending", "approved", "rejected"
+  reviewedBy    String?
+  reviewNote    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([entityType])
 }

@@ -31,8 +31,8 @@ async function main() {
             brandName: 'Tolet Board Chennai',
             tagline: '360° Tours • Rent & Lease • Chennai',
             city: 'Chennai',
-            whatsappNumber: '+919876543210',
-            phoneNumber: '+919876543210',
+            whatsappNumber: '+919363393324',
+            phoneNumber: '+919363393324',
             whatsappTemplate: 'Hi, I\'m interested in {propertyTitle}. Link: {propertyUrl} - Tolet Board Chennai',
         },
     });

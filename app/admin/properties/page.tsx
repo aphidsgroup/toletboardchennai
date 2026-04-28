@@ -59,6 +59,20 @@ export default function PropertiesListPage() {
         }
     };
 
+    const toggleRentedOut = async (property: Property) => {
+        const newVal = !(property as any).isRentedOut;
+        try {
+            await fetch(`/api/admin/properties/${property.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isRentedOut: newVal, isPublished: !newVal }),
+            });
+            fetchProperties(search);
+        } catch (error) {
+            console.error('Error toggling rented out:', error);
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex items-center justify-between mb-8">
@@ -164,15 +178,22 @@ export default function PropertiesListPage() {
                                             ₹{property.priceInr.toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <button
-                                                onClick={() => togglePublish(property)}
-                                                className={`px-3 py-1 text-xs font-semibold rounded-full ${property.isPublished
-                                                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-                                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                                    }`}
-                                            >
-                                                {property.isPublished ? 'Published' : 'Draft'}
-                                            </button>
+                                            <div className="flex flex-col gap-1">
+                                                <button
+                                                    onClick={() => togglePublish(property)}
+                                                    className={`px-3 py-1 text-xs font-semibold rounded-full w-fit ${property.isPublished
+                                                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                                                        : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                                        }`}
+                                                >
+                                                    {property.isPublished ? 'Published' : 'Draft'}
+                                                </button>
+                                                {(property as any).isRentedOut && (
+                                                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 w-fit">
+                                                        Rented Out
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
@@ -189,6 +210,15 @@ export default function PropertiesListPage() {
                                                 >
                                                     Edit
                                                 </Link>
+                                                <button
+                                                    onClick={() => toggleRentedOut(property)}
+                                                    className={`px-3 py-1 text-sm font-medium rounded ${(property as any).isRentedOut
+                                                        ? 'text-green-600 dark:text-green-400 hover:underline'
+                                                        : 'text-orange-600 dark:text-orange-400 hover:underline'
+                                                    }`}
+                                                >
+                                                    {(property as any).isRentedOut ? 'Unhide' : 'Rented Out'}
+                                                </button>
                                                 <button
                                                     onClick={() => handleDelete(property.id, property.title)}
                                                     className="px-3 py-1 text-sm text-red-600 dark:text-red-400 hover:underline"

@@ -121,10 +121,33 @@ export default function ManagerDashboard() {
 
     const noAccess = !permissions.viewLeads && !permissions.viewUsers && !permissions.viewProperties;
 
+    const requestDeletion = async (prop: PropertyItem) => {
+        const reason = prompt(`Why should "${prop.title}" be deleted?`);
+        if (reason === null) return;
+        await fetch('/api/admin/change-requests', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'delete_property', entityType: 'property', entityId: prop.id, entityTitle: prop.title, requestedBy: 'Manager', reason }),
+        });
+        alert('Deletion request sent to admin for approval.');
+    };
+
+    const toggleRentedOut = async (prop: PropertyItem) => {
+        const newVal = !(prop as any).isRentedOut;
+        await fetch('/api/admin/change-requests', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'edit_property', entityType: 'property', entityId: prop.id, entityTitle: prop.title, changes: { isRentedOut: newVal, isPublished: !newVal }, requestedBy: 'Manager' }),
+        });
+        alert('Rented out change request sent to admin for approval.');
+    };
+
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="container mx-auto px-4 py-8 max-w-6xl">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Manager Dashboard</h1>
+            {/* Top Header */}
+                <div className="flex items-center justify-between mb-2">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manager Dashboard</h1>
+                    <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">Logout</button>
+                </div>
 
                 {noAccess ? (
                     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-12 text-center">
@@ -136,41 +159,65 @@ export default function ManagerDashboard() {
                     </div>
                 ) : (
                     <>
-                        {/* Tab Toggle — only show tabs the manager has permission for */}
-                        <div className="flex rounded-xl bg-gray-200 dark:bg-gray-700 p-1 mb-6 max-w-md">
-                            {permissions.viewLeads && (
-                                <button
-                                    onClick={() => setTab('leads')}
-                                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${tab === 'leads'
-                                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-gray-400'
-                                        }`}
-                                >
-                                    Lead Responses ({leads.length})
-                                </button>
-                            )}
-                            {permissions.viewUsers && (
-                                <button
-                                    onClick={() => setTab('users')}
-                                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${tab === 'users'
-                                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-gray-400'
-                                        }`}
-                                >
-                                    Users ({users.length})
-                                </button>
-                            )}
-                            {permissions.viewProperties && (
-                                <button
-                                    onClick={() => setTab('properties')}
-                                    className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${tab === 'properties'
-                                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-gray-400'
-                                        }`}
-                                >
-                                    Properties ({properties.length})
-                                </button>
-                            )}
+                        {/* Tab Bar with contextual actions */}
+                        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                            <div className="flex rounded-xl bg-gray-200 dark:bg-gray-700 p-1">
+                                {permissions.viewLeads && (
+                                    <button
+                                        onClick={() => setTab('leads')}
+                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'leads'
+                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500 dark:text-gray-400'
+                                            }`}
+                                    >
+                                        Lead Responses ({leads.length})
+                                    </button>
+                                )}
+                                {permissions.viewUsers && (
+                                    <button
+                                        onClick={() => setTab('users')}
+                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'users'
+                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500 dark:text-gray-400'
+                                            }`}
+                                    >
+                                        Users ({users.length})
+                                    </button>
+                                )}
+                                {permissions.viewProperties && (
+                                    <button
+                                        onClick={() => setTab('properties')}
+                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'properties'
+                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-500 dark:text-gray-400'
+                                            }`}
+                                    >
+                                        Properties ({properties.length})
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Contextual action buttons — change based on active tab */}
+                            <div className="flex items-center gap-2">
+                                {tab === 'leads' && permissions.viewLeads && (
+                                    <>
+                                        <a href="/manager/leads/owner" className="px-3 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
+                                            <svg className="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                            Owner Leads
+                                        </a>
+                                        <a href="/manager/leads/tenant" className="px-3 py-2 text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
+                                            <svg className="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            Tenant Leads
+                                        </a>
+                                    </>
+                                )}
+                                {tab === 'properties' && permissions.viewProperties && (
+                                    <a href="/manager/properties/new" className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-semibold rounded-lg shadow hover:shadow-md transition-all">
+                                        <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+                                        Add Property
+                                    </a>
+                                )}
+                            </div>
                         </div>
 
                         {/* Leads Tab */}
@@ -333,15 +380,32 @@ export default function ManagerDashboard() {
                                                             </span>
                                                         </td>
                                                         <td className="px-4 py-3">
-                                                            <a
-                                                                href={`/manager/properties/${prop.id}/edit`}
-                                                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-xs font-semibold rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors"
-                                                            >
-                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                </svg>
-                                                                Edit
-                                                            </a>
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <a
+                                                                    href={`/manager/properties/${prop.id}/edit`}
+                                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-xs font-semibold rounded-lg hover:bg-primary-100 transition-colors"
+                                                                >
+                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                    </svg>
+                                                                    Edit
+                                                                </a>
+                                                                <button
+                                                                    onClick={() => toggleRentedOut(prop)}
+                                                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${(prop as any).isRentedOut
+                                                                        ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100'
+                                                                        : 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100'
+                                                                    }`}
+                                                                >
+                                                                    {(prop as any).isRentedOut ? 'Unhide' : 'Rented Out'}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => requestDeletion(prop)}
+                                                                    className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg hover:bg-red-100 transition-colors"
+                                                                >
+                                                                    Request Delete
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))}

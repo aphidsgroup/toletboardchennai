@@ -1,43 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { supabaseAdmin, STORAGE_BUCKET } from '@/lib/supabase';
+import cloudinary, { CLOUDINARY_FOLDER } from '@/lib/cloudinary';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-// Ensure the storage bucket exists (auto-creates on first use)
-let bucketEnsured = false;
-async function ensureBucket() {
-    if (bucketEnsured) return;
-
-    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
-    const exists = buckets?.some(b => b.id === STORAGE_BUCKET);
-
-    if (!exists) {
-        const { error } = await supabaseAdmin.storage.createBucket(STORAGE_BUCKET, {
-            public: true,
-            fileSizeLimit: MAX_FILE_SIZE,
-            allowedMimeTypes: ALLOWED_TYPES,
-        });
-        if (error && !error.message.includes('already exists')) {
-            console.error('Failed to create bucket:', error);
-            throw new Error('Storage bucket creation failed');
-        }
-    }
-
-    bucketEnsured = true;
-}
-
 export async function POST(request: NextRequest) {
     const session = await getSession();
-    if (!session.isLoggedIn || session.role !== 'admin') {
+    if (!session.isLoggedIn || (session.role !== 'admin' && session.role !== 'manager')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        // Auto-create bucket if it doesn't exist
-        await ensureBucket();
-
         const formData = await request.formData();
         const files = formData.getAll('images') as File[];
 
@@ -45,11 +19,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No files provided' }, { status: 400 });
         }
 
-        if (files.length > 5) {
-            return NextResponse.json({ error: 'Maximum 5 images allowed' }, { status: 400 });
+        if (files.length > 10) {
+            return NextResponse.json({ error: 'Maximum 10 images allowed' }, { status: 400 });
         }
 
-        const uploadedPaths: string[] = [];
+        const uploadedUrls: string[] = [];
 
         for (const file of files) {
             // Validate file type
@@ -68,42 +42,23 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            // Generate unique filename
-            const timestamp = Date.now();
-            const randomString = Math.random().toString(36).substring(2, 15);
-            const extension = file.name.split('.').pop();
-            const filename = `${timestamp}-${randomString}.${extension}`;
-            const filePath = `properties/${filename}`;
-
-            // Convert file to buffer for Supabase upload
+            // Convert file to base64 for Cloudinary upload
             const bytes = await file.arrayBuffer();
             const buffer = Buffer.from(bytes);
+            const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-            // Upload to Supabase Storage
-            const { error: uploadError } = await supabaseAdmin.storage
-                .from(STORAGE_BUCKET)
-                .upload(filePath, buffer, {
-                    contentType: file.type,
-                    upsert: false,
-                });
+            // Upload to Cloudinary
+            const result = await cloudinary.uploader.upload(base64, {
+                folder: CLOUDINARY_FOLDER,
+                resource_type: 'image',
+                quality: 'auto',
+                fetch_format: 'auto',
+            });
 
-            if (uploadError) {
-                console.error('Supabase upload error:', uploadError);
-                return NextResponse.json(
-                    { error: `Failed to upload ${file.name}: ${uploadError.message}` },
-                    { status: 500 }
-                );
-            }
-
-            // Get public URL
-            const { data: urlData } = supabaseAdmin.storage
-                .from(STORAGE_BUCKET)
-                .getPublicUrl(filePath);
-
-            uploadedPaths.push(urlData.publicUrl);
+            uploadedUrls.push(result.secure_url);
         }
 
-        return NextResponse.json({ paths: uploadedPaths }, { status: 200 });
+        return NextResponse.json({ paths: uploadedUrls }, { status: 200 });
     } catch (error) {
         console.error('Upload error:', error);
         return NextResponse.json({ error: 'Failed to upload images' }, { status: 500 });

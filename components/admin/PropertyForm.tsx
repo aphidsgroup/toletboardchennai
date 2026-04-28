@@ -29,11 +29,12 @@ import { uploadImageDirect } from '@/lib/supabase-browser';
 interface PropertyFormProps {
     property?: Property;
     mode: 'create' | 'edit';
-    apiBasePath?: string;    // e.g., '/api/manager/properties' — defaults to '/api/admin/properties'
-    redirectPath?: string;   // e.g., '/manager' — defaults to '/admin/properties'
+    apiBasePath?: string;
+    redirectPath?: string;
+    role?: 'admin' | 'manager';
 }
 
-export default function PropertyForm({ property, mode, apiBasePath = '/api/admin/properties', redirectPath = '/admin/properties' }: PropertyFormProps) {
+export default function PropertyForm({ property, mode, apiBasePath = '/api/admin/properties', redirectPath = '/admin/properties', role = 'admin' }: PropertyFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
@@ -133,6 +134,19 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
                 : `${apiBasePath}/${property!.id}`;
 
             const method = mode === 'create' ? 'POST' : 'PUT';
+
+            // Manager edits go through change request approval
+            if (role === 'manager' && mode === 'edit') {
+                const res = await fetch('/api/admin/change-requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'edit_property', entityType: 'property', entityId: property!.id, entityTitle: property!.title, changes: payload, requestedBy: 'Manager' }),
+                });
+                if (!res.ok) throw new Error('Failed to submit change request');
+                alert('Edit request submitted for admin approval.');
+                router.push(redirectPath);
+                return;
+            }
 
             const res = await fetch(url, {
                 method,

@@ -1,24 +1,11 @@
-import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import PropertyForm from '@/components/admin/PropertyForm';
 
-interface EditPropertyPageProps {
-    params: Promise<{ id: string }>;
-}
-
-export default async function ManagerEditPropertyPage({ params }: EditPropertyPageProps) {
+export default async function ManagerNewPropertyPage() {
     const session = await getSession();
     if (!session.isLoggedIn || (session.role !== 'manager' && session.role !== 'admin')) {
         redirect('/login');
-    }
-
-    const { id } = await params;
-    const property = await prisma.property.findUnique({ where: { id } });
-
-    if (!property) {
-        notFound();
     }
 
     return (
@@ -31,13 +18,12 @@ export default async function ManagerEditPropertyPage({ params }: EditPropertyPa
                         </svg>
                     </a>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Edit Property
+                        Add New Property
                     </h1>
                 </div>
                 <PropertyForm
-                    property={property}
-                    mode="edit"
-                    apiBasePath="/api/manager/properties"
+                    mode="create"
+                    apiBasePath="/api/admin/properties"
                     redirectPath="/manager"
                     role="manager"
                 />

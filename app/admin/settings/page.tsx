@@ -191,8 +191,8 @@ export default function SettingsPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Contact Settings</h2>
                     <div className="space-y-4">
-                        <Field label="WhatsApp Number" value={formData.whatsappNumber} onChange={(v) => updateField('whatsappNumber', v)} placeholder="+919876543210" type="tel" />
-                        <Field label="Phone Number" value={formData.phoneNumber} onChange={(v) => updateField('phoneNumber', v)} placeholder="+919876543210" type="tel" />
+                        <Field label="WhatsApp Number" value={formData.whatsappNumber} onChange={(v) => updateField('whatsappNumber', v)} placeholder="+919363393324" type="tel" />
+                        <Field label="Phone Number" value={formData.phoneNumber} onChange={(v) => updateField('phoneNumber', v)} placeholder="+919363393324" type="tel" />
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                                 WhatsApp Message Template
