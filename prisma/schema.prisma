@@ -215,3 +215,34 @@ model ChangeRequest {
   @@index([status])
   @@index([entityType])
 }
+
+model OnboardingSubmission {
+  id                   String      @id @default(cuid())
+  formType             String      // "owner" or "tenant"
+  status               String      @default("pending") // "pending", "verified", "rejected"
+  
+  // Common fields
+  name                 String
+  phone                String
+  whatsappNumber       String?
+  email                String?
+  wantsWhatsappUpdates Boolean     @default(false)
+
+  // Tenant specific
+  tenantType           String?     // e.g., "Family (Veg Only)"
+  preferredAreas       String?     // Comma separated or text
+  propertyType         String?
+  budgetRange          String?
+  bedrooms             String?
+  moveInDate           DateTime?
+
+  // Owner specific (placeholder fields)
+  propertyAddress      String?
+  propertyDetails      String?     // JSON string for other details
+
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@index([formType])
+  @@index([status])
+}

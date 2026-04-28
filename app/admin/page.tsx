@@ -12,11 +12,12 @@ async function getStats() {
             prisma.property.count({ where: { dealType: 'rent', isPublished: true } }),
             prisma.property.count({ where: { dealType: 'lease', isPublished: true } }),
             prisma.leadFormResponse.count(),
+            prisma.onboardingSubmission.count({ where: { status: 'pending' } }),
             prisma.user.count(),
         ]);
-        return { totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, totalUsers };
+        return { totalProperties, publishedProperties, rentProperties, leaseProperties, totalLeads, pendingSubmissions, totalUsers };
     } catch {
-        return { totalProperties: 0, publishedProperties: 0, rentProperties: 0, leaseProperties: 0, totalLeads: 0, totalUsers: 0 };
+        return { totalProperties: 0, publishedProperties: 0, rentProperties: 0, leaseProperties: 0, totalLeads: 0, pendingSubmissions: 0, totalUsers: 0 };
     }
 }
 
@@ -99,15 +100,15 @@ export default async function AdminDashboard() {
                     <span className="text-xs text-primary-500 group-hover:underline">View all →</span>
                 </Link>
 
-                <Link href="/admin/users" className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5 hover:shadow-lg transition-shadow group">
+                <Link href="/admin/forms" className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5 hover:shadow-lg transition-shadow group">
                     <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">Registered Users</h3>
-                        <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">Pending Submissions</h3>
+                        <svg className="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalUsers}</p>
-                    <span className="text-xs text-primary-500 group-hover:underline">View all →</span>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.pendingSubmissions}</p>
+                    <span className="text-xs text-primary-500 group-hover:underline">Verify now →</span>
                 </Link>
             </div>
 
@@ -163,6 +164,16 @@ export default async function AdminDashboard() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         <span className="font-semibold text-sm">Managers</span>
+                    </Link>
+
+                    <Link
+                        href="/admin/forms"
+                        className="flex items-center gap-3 p-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl transition-colors"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="font-semibold text-sm">Forms</span>
                     </Link>
 
                     <Link

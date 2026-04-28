@@ -4,14 +4,16 @@ import { useState, useEffect } from 'react';
 interface Lead { id:string; name:string; phone:string; email:string|null; lookingFor:string; propertyType:string|null; budgetRange:string|null; preferredArea:string|null; message:string|null; createdAt:string; }
 interface User { id:string; name:string; email:string|null; phone:string; whatsappNumber:string|null; createdAt:string; shortlists:{id:string;propertyId:string;property:{title:string;slug:string}}[]; }
 interface PropertyItem { id:string; title:string; slug:string; areaName:string; dealType:string; usageType:string; priceInr:number; isPublished:boolean; isRentedOut?:boolean; createdAt:string; }
+interface OnboardingSubmission { id:string; formType:string; status:string; name:string; phone:string; email:string|null; createdAt:string; tenantType?:string; preferredAreas?:string; propertyType?:string; budgetRange?:string; bedrooms?:string; moveInDate?:string; propertyAddress?:string; }
 interface Permissions { viewLeads:boolean; viewUsers:boolean; viewProperties:boolean; addProperties:boolean; editProperties:boolean; }
 
 export default function ManagerDashboard() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [properties, setProperties] = useState<PropertyItem[]>([]);
+    const [submissions, setSubmissions] = useState<OnboardingSubmission[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'leads'|'users'|'properties'>('leads');
+    const [tab, setTab] = useState<'leads'|'users'|'properties'|'forms'>('leads');
     const [authorized, setAuthorized] = useState(true);
     const [permissions, setPermissions] = useState<Permissions>({ viewLeads:true, viewUsers:true, viewProperties:true, addProperties:false, editProperties:false });
 
@@ -28,6 +30,7 @@ export default function ManagerDashboard() {
             if (perms.viewLeads) fetches.push(fetch('/api/leads').then(r=>r.json()).then(d=>setLeads(d.leads||[])));
             if (perms.viewUsers) fetches.push(fetch('/api/manager/users').then(r=>r.json()).then(d=>setUsers(d.users||[])));
             if (perms.viewProperties) fetches.push(fetch('/api/manager/properties').then(r=>r.json()).then(d=>setProperties(d.properties||[])));
+            fetches.push(fetch('/api/admin/onboarding').then(r=>r.json()).then(d=>setSubmissions(d.submissions||[])));
             Promise.all(fetches).then(()=>setLoading(false));
             if (!perms.viewLeads && perms.viewUsers) setTab('users');
             else if (!perms.viewLeads && !perms.viewUsers && perms.viewProperties) setTab('properties');
@@ -61,6 +64,7 @@ export default function ManagerDashboard() {
         ...(permissions.viewLeads ? [{ key:'leads' as const, label:'Leads', count:leads.length, icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' }] : []),
         ...(permissions.viewUsers ? [{ key:'users' as const, label:'Users', count:users.length, icon:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }] : []),
         ...(permissions.viewProperties ? [{ key:'properties' as const, label:'Properties', count:properties.length, icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' }] : []),
+        { key:'forms' as const, label:'Forms', count:submissions.length, icon:'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
     ];
 
     return (
@@ -211,6 +215,70 @@ export default function ManagerDashboard() {
                                         )}
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Forms Tab */}
+                        {tab === 'forms' && (
+                            <div className="space-y-4">
+                                <div className="bg-primary-50 dark:bg-primary-900/10 rounded-2xl p-4 border border-primary-100 dark:border-primary-900/20 mb-2">
+                                    <h3 className="text-sm font-bold text-primary-800 dark:text-primary-300 mb-3 flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                        Shareable Form Links
+                                    </h3>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-2.5 rounded-xl text-xs shadow-sm">
+                                            <span className="font-semibold text-gray-600 dark:text-gray-400">Tenant Form:</span>
+                                            <div className="flex items-center gap-2">
+                                                <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">/forms/tenant</code>
+                                                <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/forms/tenant'); alert('Copied!'); }} className="text-primary-600 font-bold">Copy</button>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-2.5 rounded-xl text-xs shadow-sm">
+                                            <span className="font-semibold text-gray-600 dark:text-gray-400">Owner Form:</span>
+                                            <div className="flex items-center gap-2">
+                                                <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">/forms/owner</code>
+                                                <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/forms/owner'); alert('Copied!'); }} className="text-primary-600 font-bold">Copy</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {submissions.length === 0 ? <EmptyState text="No form submissions yet" /> : submissions.map(sub => (
+                                        <div key={sub.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div>
+                                                    <span className={`text-[10px] uppercase font-black px-1.5 py-0.5 rounded ${sub.formType === 'tenant' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                                                        {sub.formType}
+                                                    </span>
+                                                    <div className="font-bold text-gray-900 dark:text-white mt-1">{sub.name}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-[10px] text-gray-400">{new Date(sub.createdAt).toLocaleDateString()}</div>
+                                                    <div className={`text-[10px] font-bold ${sub.status === 'pending' ? 'text-amber-500' : 'text-green-500'}`}>
+                                                        {sub.status.toUpperCase()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-xs text-gray-500 mb-3 space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                    {sub.phone}
+                                                </div>
+                                                {sub.preferredAreas && (
+                                                    <div className="flex items-center gap-2">
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                                        {sub.preferredAreas}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <Link href={`/manager/forms?id=${sub.id}`} className="block w-full text-center py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300">
+                                                Review & Verify
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </>
