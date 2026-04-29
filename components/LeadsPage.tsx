@@ -344,21 +344,40 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                     
                     try {
                         const data = JSON.parse(jsonStr);
+                        // Sort keys to prioritize important ones
+                        const priorityKeys = ['purposeOfRental', 'commercialTenantTypes', 'propertyAddress', 'propertyType', 'expectedRent', 'preferredArea', 'budgetRange', 'bhkPreference'];
+                        const sortedEntries = Object.entries(data).sort(([a], [b]) => {
+                            const aIdx = priorityKeys.indexOf(a);
+                            const bIdx = priorityKeys.indexOf(b);
+                            if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                            if (aIdx !== -1) return -1;
+                            if (bIdx !== -1) return 1;
+                            return a.localeCompare(b);
+                        });
+
                         return (
                             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
                                 {prefix && <h5 className="text-sm font-bold text-gray-900 dark:text-white mb-4">{prefix}</h5>}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {Object.entries(data).map(([key, value]) => {
-                                        if (key === 'signature') return null;
-                                        let displayValue = String(value);
-                                        if (typeof value === 'boolean') displayValue = value ? 'Yes' : 'No';
-                                        if (Array.isArray(value)) displayValue = value.join(', ');
-                                        if (typeof value === 'object' && value !== null) displayValue = JSON.stringify(value);
+                                    {sortedEntries.map(([key, value]) => {
+                                        if (key === 'signature' || !value) return null;
+                                        
+                                        let displayValue = '';
+                                        if (Array.isArray(value)) {
+                                            displayValue = value.join(', ');
+                                        } else if (typeof value === 'boolean') {
+                                            displayValue = value ? 'Yes' : 'No';
+                                        } else if (typeof value === 'object' && value !== null) {
+                                            displayValue = JSON.stringify(value);
+                                        } else {
+                                            displayValue = String(value);
+                                        }
+
                                         const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                                         return (
-                                            <div key={key} className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                                                <span className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">{formattedKey}</span>
-                                                <span className="block text-sm font-semibold text-gray-900 dark:text-white truncate" title={displayValue}>{displayValue || '—'}</span>
+                                            <div key={key} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm col-span-1 sm:col-span-2">
+                                                <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{formattedKey}</span>
+                                                <span className="block text-sm font-bold text-gray-900 dark:text-white break-words">{displayValue || '—'}</span>
                                             </div>
                                         );
                                     })}
