@@ -41,6 +41,18 @@ export async function POST(request: Request) {
         if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
         if (action === 'verify') {
+            // Prepare detailed JSON for the message field to preserve all info
+            const details = {
+                ...JSON.parse(submission.propertyDetails || '{}'),
+                tenantType: submission.tenantType,
+                bedrooms: submission.bedrooms,
+                moveInDate: submission.moveInDate,
+                preferredAreas: submission.preferredAreas,
+                budgetRange: submission.budgetRange,
+                propertyType: submission.propertyType,
+                wantsWhatsappUpdates: submission.wantsWhatsappUpdates
+            };
+
             // Convert to Lead
             await prisma.lead.create({
                 data: {
@@ -55,7 +67,8 @@ export async function POST(request: Request) {
                     propertyType: submission.propertyType,
                     budgetRange: submission.budgetRange,
                     preferredArea: submission.preferredAreas,
-                    message: submission.propertyDetails ? `Onboarding Details: ${submission.propertyDetails}` : 'From onboarding form',
+                    bhkPreference: submission.bedrooms, // Map bedrooms to bhkPreference
+                    message: `Onboarding Details: ${JSON.stringify(details)}`,
                 }
             });
 

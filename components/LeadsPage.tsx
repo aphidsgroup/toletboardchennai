@@ -51,13 +51,13 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
             } catch(e) {}
         }
         return {
-            address: lead.propertyAddress || data.address || data.propertyAddress || '—',
+            address: lead.propertyAddress || data.propertyAddress || data.address || '—',
             type: lead.propertyType || data.propertyType || data.type || '—',
-            rent: lead.expectedRent ? `₹${lead.expectedRent.toLocaleString('en-IN')}/mo` : (data.monthlyRent || data.expectedRent ? `₹${(data.monthlyRent || data.expectedRent).toLocaleString('en-IN')}/mo` : '—'),
-            area: lead.preferredArea || data.preferredArea || data.area || '—',
+            rent: lead.expectedRent ? `₹${Number(lead.expectedRent).toLocaleString('en-IN')}/mo` : (data.monthlyRent || data.expectedRent ? `₹${Number(data.monthlyRent || data.expectedRent).toLocaleString('en-IN')}/mo` : '—'),
+            area: lead.preferredArea || data.preferredAreas || data.preferredArea || data.area || '—',
             budget: lead.budgetRange || data.budgetRange || data.budget || '—',
-            bhk: lead.bhkPreference || data.bhkPreference || data.bhkType || '—',
-            lookingFor: lead.lookingFor || data.lookingFor || '—'
+            bhk: lead.bhkPreference || data.bedrooms || data.bhkPreference || data.bhkType || data.bhk || '—',
+            lookingFor: lead.lookingFor || data.lookingFor || data.tenantType || '—'
         };
     };
 
