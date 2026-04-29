@@ -39,6 +39,20 @@ export default function AdminLeadsPage() {
         (l.preferredArea && l.preferredArea.toLowerCase().includes(search.toLowerCase()))
     );
 
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this lead response?')) return;
+        try {
+            const res = await fetch(`/api/admin/lead-responses/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                setLeads(leads.filter(l => l.id !== id));
+            } else {
+                alert('Failed to delete lead');
+            }
+        } catch (e) {
+            alert('Error deleting lead');
+        }
+    };
+
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-8 flex justify-center">
@@ -94,6 +108,7 @@ export default function AdminLeadsPage() {
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Property</th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Message</th>
                                     <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Date</th>
+                                    <th className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -129,6 +144,11 @@ export default function AdminLeadsPage() {
                                         </td>
                                         <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
                                             {new Date(lead.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <button onClick={() => handleDelete(lead.id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
