@@ -27,7 +27,6 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
-    const [showForm, setShowForm] = useState(false);
     const [editLead, setEditLead] = useState<Lead|null>(null);
     const [noteModal, setNoteModal] = useState<string|null>(null);
     const [noteText, setNoteText] = useState('');
@@ -211,7 +210,12 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                                 Import Sheet
                             </button>
                         </div>
-                        <button onClick={()=>setShowForm(true)} className="btn-premium px-3 py-2 rounded-xl text-xs font-semibold w-full">+ Add Lead</button>
+                        <Link 
+                            href={`/forms/${leadType === 'owner' ? 'owner' : 'tenant'}`}
+                            className="btn-premium px-3 py-2 rounded-xl text-xs font-semibold w-full block text-center"
+                        >
+                            + Add Lead
+                        </Link>
                     </div>
                 </div>
 
@@ -493,132 +497,10 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                 );
             })()}
             {/* Add Lead Modal */}
-            {showForm && <AddLeadModal leadType={leadType} onClose={()=>setShowForm(false)} onAdded={()=>{setShowForm(false);fetchLeads();}} />}
             {/* Edit Lead Modal */}
             {editLead && <EditLeadModal lead={editLead} leadType={leadType} role={role} onClose={()=>setEditLead(null)} onSaved={()=>{setEditLead(null);fetchLeads();}} />}
             {/* Import Sheet Modal */}
             {showImport && <LeadsImportModal leadType={leadType} onClose={()=>setShowImport(false)} onImported={()=>{setShowImport(false);fetchLeads();}} />}
-        </div>
-    );
-}
-
-function AddLeadModal({ leadType, onClose, onAdded }: { leadType:string; onClose:()=>void; onAdded:()=>void }) {
-    const [form, setForm] = useState<any>({ 
-        leadType, source:'walk_in', name:'', phone:'', email:'', whatsappNumber:'', 
-        propertyAddress:'', propertyType:'', expectedRent:'', purposeOfRental:[], 
-        totalSqft:'', bhkPreference:'', lookingFor:'rent', budgetRange:'', 
-        preferredArea:'', message:'', assignedTo:'', status: 'new'
-    });
-    const [saving, setSaving] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    const validate = () => {
-        const e: Record<string, string> = {};
-        if (form.name.trim().length < 3) e.name = 'Name too short';
-        if (!/^\d{10}$/.test(form.phone)) e.phone = '10-digit phone required';
-        if (leadType === 'owner' && !form.propertyAddress) e.propertyAddress = 'Address required';
-        setErrors(e);
-        return Object.keys(e).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!validate()) return;
-        setSaving(true);
-        await fetch('/api/admin/leads', { 
-            method:'POST', 
-            headers:{'Content-Type':'application/json'}, 
-            body:JSON.stringify({
-                ...form,
-                expectedRent: form.expectedRent ? parseInt(form.expectedRent) : null,
-                totalSqft: form.totalSqft ? parseInt(form.totalSqft) : null,
-            }) 
-        });
-        setSaving(false); onAdded();
-    };
-
-    const set = (k:string,v:any) => setForm({...form,[k]:v});
-    const inputCls = "w-full mt-1 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all";
-    const labelCls = "text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider";
-
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 animate-scale-in" onClick={e=>e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New {leadType==='owner'?'Owner':'Tenant'}</h2>
-                        <p className="text-sm text-gray-500">Capture detailed lead information manually.</p>
-                    </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Basic Info Section */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className={labelCls}>Full Name *</label>
-                            <input required value={form.name} onChange={e=>set('name',e.target.value)} className={`${inputCls} ${errors.name ? 'border-red-500 ring-1 ring-red-500' : ''}`} placeholder="John Doe"/>
-                            {errors.name && <p className="text-[10px] text-red-500 font-bold mt-1 uppercase">{errors.name}</p>}
-                        </div>
-                        <div>
-                            <label className={labelCls}>Phone Number *</label>
-                            <input required value={form.phone} onChange={e=>set('phone',e.target.value)} className={`${inputCls} ${errors.phone ? 'border-red-500 ring-1 ring-red-500' : ''}`} placeholder="10-digit number"/>
-                            {errors.phone && <p className="text-[10px] text-red-500 font-bold mt-1 uppercase">{errors.phone}</p>}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div><label className={labelCls}>Email Address</label><input type="email" value={form.email} onChange={e=>set('email',e.target.value)} className={inputCls} placeholder="email@example.com"/></div>
-                        <div><label className={labelCls}>Lead Source</label>
-                            <select value={form.source} onChange={e=>set('source',e.target.value)} className={inputCls}>
-                                {SOURCES.map(s=>(<option key={s} value={s}>{sourceLabel(s)}</option>))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Detailed Section */}
-                    <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-4">
-                        {leadType==='owner' ? (
-                            <>
-                                <div><label className={labelCls}>Property Full Address *</label><textarea required value={form.propertyAddress} onChange={e=>set('propertyAddress',e.target.value)} rows={2} className={inputCls} placeholder="Door No, Street, Area, Landmark..."/></div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div><label className={labelCls}>Property Type</label><input value={form.propertyType} onChange={e=>set('propertyType',e.target.value)} placeholder="e.g. Apartment, Villa" className={inputCls}/></div>
-                                    <div><label className={labelCls}>Expected Rent (₹)</label><input type="number" value={form.expectedRent} onChange={e=>set('expectedRent',e.target.value)} placeholder="Monthly Rent" className={inputCls}/></div>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div><label className={labelCls}>Preferred Area</label><input value={form.preferredArea} onChange={e=>set('preferredArea',e.target.value)} placeholder="e.g. Adyar, Velachery" className={inputCls}/></div>
-                                    <div><label className={labelCls}>BHK Preference</label><input value={form.bhkPreference} onChange={e=>set('bhkPreference',e.target.value)} placeholder="e.g. 2 BHK, 3 BHK" className={inputCls}/></div>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div><label className={labelCls}>Budget Range</label><input value={form.budgetRange} onChange={e=>set('budgetRange',e.target.value)} placeholder="e.g. 20K - 30K" className={inputCls}/></div>
-                                    <div><label className={labelCls}>Looking For</label>
-                                        <select value={form.lookingFor} onChange={e=>set('lookingFor',e.target.value)} className={inputCls}><option value="rent">Rent</option><option value="lease">Lease</option></select>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    <div><label className={labelCls}>Internal Notes / Requirements</label><textarea value={form.message} onChange={e=>set('message',e.target.value)} rows={3} className={inputCls} placeholder="Add any specific requirements or notes here..."/></div>
-
-                    <div className="flex gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                        <button type="submit" disabled={saving} className="flex-1 btn-premium py-4 rounded-2xl font-bold transition-all disabled:opacity-50 shadow-lg shadow-primary-500/20">
-                            {saving ? (
-                                <div className="flex items-center justify-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>
-                                    <span>Saving Lead...</span>
-                                </div>
-                            ) : `Save ${leadType==='owner'?'Owner':'Tenant'} Lead`}
-                        </button>
-                        <button type="button" onClick={onClose} className="px-8 py-4 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-2xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
-                    </div>
-                </form>
-            </div>
         </div>
     );
 }

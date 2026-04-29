@@ -14,7 +14,7 @@ export default function ManagerDashboard() {
     const [properties, setProperties] = useState<PropertyItem[]>([]);
     const [submissions, setSubmissions] = useState<OnboardingSubmission[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'leads'|'users'|'properties'|'forms'>('leads');
+    const [tab, setTab] = useState<'users'|'properties'|'forms'>('properties');
     const [selectedLeadId, setSelectedLeadId] = useState<string|null>(null);
     const [authorized, setAuthorized] = useState(true);
     const [permissions, setPermissions] = useState<Permissions>({ viewLeads:true, viewUsers:true, viewProperties:true, addProperties:false, editProperties:false });
@@ -63,7 +63,6 @@ export default function ManagerDashboard() {
     };
 
     const tabs = [
-        ...(permissions.viewLeads ? [{ key:'leads' as const, label:'Leads', count:leads.length, icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' }] : []),
         ...(permissions.viewUsers ? [{ key:'users' as const, label:'Users', count:users.length, icon:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }] : []),
         ...(permissions.viewProperties ? [{ key:'properties' as const, label:'Properties', count:properties.length, icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' }] : []),
         { key:'forms' as const, label:'Forms', count:submissions.length, icon:'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
@@ -81,9 +80,8 @@ export default function ManagerDashboard() {
                         <span className="font-bold text-gray-900 dark:text-white text-base">Manager</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        {tab === 'leads' && permissions.viewLeads && (
+                        {permissions.viewLeads && (
                             <>
-                                <a href="/manager/leads" className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold rounded-lg">Leads</a>
                                 <a href="/manager/leads/owner" className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-lg">Owner Leads</a>
                                 <a href="/manager/leads/tenant" className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-lg">Tenant Leads</a>
                             </>
@@ -112,40 +110,6 @@ export default function ManagerDashboard() {
                             {permissions.viewProperties && <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm text-center"><div className="text-2xl font-extrabold text-emerald-600">{properties.length}</div><div className="text-xs text-gray-500 mt-0.5">Properties</div></div>}
                         </div>
 
-                        {/* Leads Tab */}
-                        {tab === 'leads' && permissions.viewLeads && (
-                            <div className="space-y-3">
-                                {leads.length === 0 ? <EmptyState text="No lead responses yet" /> : leads.map(lead => (
-                                    <div 
-                                        key={lead.id} 
-                                        onClick={() => setSelectedLeadId(lead.id)}
-                                        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 cursor-pointer hover:shadow-md transition-shadow group"
-                                    >
-                                        <div className="flex items-start justify-between gap-2 mb-3">
-                                            <div>
-                                                <div className="font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{lead.name}</div>
-                                                {lead.email && <div className="text-xs text-gray-500 mt-0.5 truncate">{lead.email}</div>}
-                                            </div>
-                                            <span className={`flex-shrink-0 px-2 py-1 rounded-md text-[10px] font-black uppercase ${lead.lookingFor==='rent' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'}`}>{lead.lookingFor}</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-600 dark:text-gray-400 mb-4">
-                                            <div className="truncate"><span className="text-gray-400">Area:</span> {lead.preferredArea || '—'}</div>
-                                            <div><span className="text-gray-400">Budget:</span> {lead.budgetRange || '—'}</div>
-                                            <div><span className="text-gray-400">Type:</span> {lead.propertyType || '—'}</div>
-                                            <div><span className="text-gray-400">Date:</span> {new Date(lead.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
-                                        </div>
-                                        <div className="flex gap-2" onClick={e=>e.stopPropagation()}>
-                                            <a href={`tel:${lead.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg text-xs font-bold">
-                                                Call
-                                            </a>
-                                            <a href={`https://wa.me/${lead.phone}`} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg text-xs font-bold">
-                                                WhatsApp
-                                            </a>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
                         {/* Users Tab */}
                         {tab === 'users' && permissions.viewUsers && (
