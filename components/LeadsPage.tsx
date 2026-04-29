@@ -250,74 +250,74 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                             <div
                                 key={lead.id}
                                 onClick={() => setSelectedId(lead.id)}
-                                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col sm:flex-row"
+                                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-pointer group p-6"
                             >
-                                {/* Left Section: Basic Info */}
-                                <div className="p-5 flex-1 border-b sm:border-b-0 sm:border-r border-gray-100 dark:border-gray-700">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex flex-wrap gap-1.5">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${statusColor(lead.status)}`}>
-                                                {STATUSES.find(s=>s.value===lead.status)?.label||lead.status}
-                                            </span>
-                                            <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded-md">
-                                                {sourceLabel(lead.source)}
-                                            </span>
+                                <div className="flex flex-col gap-5">
+                                    {/* Top: Header with Badges and Name */}
+                                    <div className="flex items-start justify-between">
+                                        <div className="space-y-1">
+                                            <div className="flex flex-wrap gap-2 mb-2">
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${statusColor(lead.status)}`}>
+                                                    {STATUSES.find(s=>s.value===lead.status)?.label||lead.status}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-0.5 rounded-md">
+                                                    {sourceLabel(lead.source)}
+                                                </span>
+                                            </div>
+                                            <h3 className="font-bold text-xl text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{lead.name}</h3>
+                                            <p className="text-base text-gray-500 font-medium">{lead.phone}</p>
                                         </div>
                                         {role === 'admin' && (
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); deleteLead(lead.id); }}
-                                                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
                                                 title="Delete Lead"
                                             >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             </button>
                                         )}
                                     </div>
-                                    <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 transition-colors">{lead.name}</h3>
-                                    <p className="text-base text-gray-500 font-medium">{lead.phone}</p>
-                                    <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        Added on {new Date(lead.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}
-                                    </div>
-                                </div>
 
-                                {/* Right Section: Requirements/Details */}
-                                <div className="p-5 flex-1 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col justify-center gap-3">
-                                    {leadType === 'owner' ? (
-                                        <>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Property Address</span>
-                                                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 line-clamp-2">{smart.address}</span>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4 mt-2">
-                                                <div>
-                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Type</span>
+                                    {/* Middle: Details Grid */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 border-y border-gray-50 dark:border-gray-700/50">
+                                        {leadType === 'owner' ? (
+                                            <>
+                                                <div className="md:col-span-1">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Property Info</span>
                                                     <span className="text-sm font-bold text-gray-900 dark:text-white">{smart.type}</span>
                                                 </div>
-                                                <div>
-                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Rent</span>
+                                                <div className="md:col-span-1">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Expected Rent</span>
                                                     <span className="text-sm font-bold text-primary-600 dark:text-primary-400">{smart.rent}</span>
                                                 </div>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Preferred Area</span>
-                                                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 line-clamp-1">{smart.area}</span>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4 mt-2">
-                                                <div>
-                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Budget</span>
-                                                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{smart.budget}</span>
+                                                <div className="md:col-span-1">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Location</span>
+                                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 line-clamp-1">{smart.address}</span>
                                                 </div>
-                                                <div>
-                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">BHK / Type</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="md:col-span-1">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Requirement</span>
                                                     <span className="text-sm font-bold text-gray-900 dark:text-white">{smart.bhk}</span>
                                                 </div>
-                                            </div>
-                                        </>
-                                    )}
+                                                <div className="md:col-span-1">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Budget</span>
+                                                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{smart.budget}</span>
+                                                </div>
+                                                <div className="md:col-span-1">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Preferred Area</span>
+                                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 line-clamp-1">{smart.area}</span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Bottom: Date */}
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Lead Created On {new Date(lead.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'})}
+                                    </div>
                                 </div>
                             </div>
                         );
