@@ -42,6 +42,26 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
         if (search) params.set('q', search);
         fetch(`/api/admin/leads?${params}`).then(r=>r.json()).then(d=>{ setLeads(d.leads||[]); setStatusCounts(d.statusCounts||[]); setLoading(false); }).catch(()=>setLoading(false));
     };
+
+    const getSmartData = (lead: Lead) => {
+        let data: any = {};
+        if (lead.message) {
+            try {
+                const jsonStr = lead.message.replace('Onboarding Details: ', '').trim();
+                data = JSON.parse(jsonStr);
+            } catch(e) {}
+        }
+        return {
+            address: lead.propertyAddress || data.address || data.propertyAddress || '—',
+            type: lead.propertyType || data.propertyType || data.type || '—',
+            rent: lead.expectedRent ? `₹${lead.expectedRent.toLocaleString('en-IN')}/mo` : (data.monthlyRent || data.expectedRent ? `₹${(data.monthlyRent || data.expectedRent).toLocaleString('en-IN')}/mo` : '—'),
+            area: lead.preferredArea || data.preferredArea || data.area || '—',
+            budget: lead.budgetRange || data.budgetRange || data.budget || '—',
+            bhk: lead.bhkPreference || data.bhkPreference || data.bhkType || '—',
+            lookingFor: lead.lookingFor || data.lookingFor || '—'
+        };
+    };
+
     useEffect(()=>{ fetchLeads(); }, [filterStatus]); // eslint-disable-line
 
     const submitChangeRequest = async (type: string, entityId: string, entityTitle: string, changes?: any) => {
@@ -65,9 +85,13 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
 
     const deleteLead = async (id: string) => {
         if (!confirm('Delete this lead?')) return;
-        await fetch(`/api/admin/leads/${id}`, { method: 'DELETE' });
-        fetchLeads();
-        if (selectedId === id) setSelectedId(null);
+        const res = await fetch(`/api/admin/leads/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            fetchLeads();
+            if (selectedId === id) setSelectedId(null);
+        } else {
+            alert('Failed to delete lead');
+        }
     };
 
     const switchType = async (id: string) => {
@@ -222,29 +246,43 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                             className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col"
                         >
                             <div className="flex items-start justify-between mb-3">
-                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${statusColor(lead.status)}`}>
-                                    {STATUSES.find(s=>s.value===lead.status)?.label||lead.status}
-                                </span>
-                                <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded-md">
-                                    {sourceLabel(lead.source)}
-                                </span>
+                                <div className="flex flex-wrap gap-1.5">
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${statusColor(lead.status)}`}>
+                                        {STATUSES.find(s=>s.value===lead.status)?.label||lead.status}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded-md">
+                                        {sourceLabel(lead.source)}
+                                    </span>
+                                </div>
+                                {role === 'admin' && (
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); deleteLead(lead.id); }}
+                                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                        title="Delete Lead"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                )}
                             </div>
                             
                             <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 transition-colors line-clamp-1">{lead.name}</h3>
                             <p className="text-sm text-gray-500 mb-4 font-medium">{lead.phone}</p>
                             
                             <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
-                                {leadType === 'owner' ? (
-                                    <>
-                                        <div className="flex justify-between text-xs"><span className="text-gray-400">Type:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{lead.propertyType || '—'}</span></div>
-                                        <div className="flex justify-between text-xs"><span className="text-gray-400">Rent:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{lead.expectedRent ? `₹${lead.expectedRent.toLocaleString()}` : '—'}</span></div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex justify-between text-xs"><span className="text-gray-400">Looking For:</span><span className="font-semibold text-gray-700 dark:text-gray-300 capitalize">{lead.lookingFor || '—'}</span></div>
-                                        <div className="flex justify-between text-xs"><span className="text-gray-400">Budget:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{lead.budgetRange || '—'}</span></div>
-                                    </>
-                                )}
+                                {(() => {
+                                    const smart = getSmartData(lead);
+                                    return leadType === 'owner' ? (
+                                        <>
+                                            <div className="flex justify-between text-xs"><span className="text-gray-400">Type:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{smart.type}</span></div>
+                                            <div className="flex justify-between text-xs"><span className="text-gray-400">Rent:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{smart.rent}</span></div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex justify-between text-xs"><span className="text-gray-400">Area:</span><span className="font-semibold text-gray-700 dark:text-gray-300 capitalize">{smart.area}</span></div>
+                                            <div className="flex justify-between text-xs"><span className="text-gray-400">Budget:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{smart.budget}</span></div>
+                                        </>
+                                    );
+                                })()}
                                 <div className="flex justify-between text-xs"><span className="text-gray-400">Date:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{new Date(lead.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short'})}</span></div>
                             </div>
                         </div>
@@ -257,6 +295,7 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                 const selectedLead = filtered.find(l => l.id === selectedId);
                 if (!selectedLead) return null;
                 const notes: {date:string;note:string;by:string}[] = selectedLead.notes ? JSON.parse(selectedLead.notes) : [];
+                const smart = getSmartData(selectedLead);
 
                 const renderMessage = (message: string) => {
                     let jsonStr = message;
@@ -353,12 +392,12 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                                         <>
                                             <section className="space-y-4">
                                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-700 pb-2">Property Details</h4>
-                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Address</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{selectedLead.propertyAddress || '—'}</div></div>
-                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Property Type</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{selectedLead.propertyType || '—'}</div></div>
+                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Address</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{smart.address}</div></div>
+                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Property Type</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{smart.type}</div></div>
                                             </section>
                                             <section className="space-y-4">
                                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-700 pb-2">Financials & Timing</h4>
-                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Expected Rent</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{selectedLead.expectedRent ? `₹${selectedLead.expectedRent.toLocaleString('en-IN')}/mo` : '—'}</div></div>
+                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Expected Rent</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{smart.rent}</div></div>
                                                 <div><div className="text-[10px] font-bold text-gray-400 uppercase">Follow-up Date</div><div className="text-sm font-semibold text-orange-600 dark:text-orange-400 mt-1">{selectedLead.followUpDate ? new Date(selectedLead.followUpDate).toLocaleDateString('en-IN') : '—'}</div></div>
                                             </section>
                                         </>
@@ -366,13 +405,13 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                                         <>
                                             <section className="space-y-4">
                                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-700 pb-2">Requirements</h4>
-                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Preferred Area</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{selectedLead.preferredArea || '—'}</div></div>
-                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">BHK / Type</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{selectedLead.bhkPreference || '—'}</div></div>
+                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Preferred Area</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{smart.area}</div></div>
+                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">BHK / Type</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{smart.bhk}</div></div>
                                             </section>
                                             <section className="space-y-4">
                                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-700 pb-2">Financials & Timing</h4>
-                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Budget Range</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{selectedLead.budgetRange || '—'}</div></div>
-                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Looking For</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1 capitalize">{selectedLead.lookingFor || '—'}</div></div>
+                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Budget Range</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{smart.budget}</div></div>
+                                                <div><div className="text-[10px] font-bold text-gray-400 uppercase">Looking For</div><div className="text-sm font-semibold text-gray-900 dark:text-white mt-1 capitalize">{smart.lookingFor}</div></div>
                                                 <div><div className="text-[10px] font-bold text-gray-400 uppercase">Follow-up Date</div><div className="text-sm font-semibold text-orange-600 dark:text-orange-400 mt-1">{selectedLead.followUpDate ? new Date(selectedLead.followUpDate).toLocaleDateString('en-IN') : '—'}</div></div>
                                             </section>
                                         </>

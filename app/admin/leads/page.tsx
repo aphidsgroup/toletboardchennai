@@ -89,8 +89,6 @@ export default function AdminLeadsPage() {
                     <svg className="w-5 h-5 text-gray-400 absolute left-3 top-3 group-hover:text-primary-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
             </div>
-
-            {/* Content Area - Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
                 {filtered.length === 0 ? (
                     <div className="col-span-full bg-white dark:bg-gray-800 p-12 rounded-3xl text-center shadow-sm border border-dashed border-gray-200 dark:border-gray-700">
@@ -100,31 +98,51 @@ export default function AdminLeadsPage() {
                         <p className="text-gray-500 dark:text-gray-400">{search ? 'No responses match your search' : 'No lead responses found'}</p>
                     </div>
                 ) : (
-                    filtered.map(lead => (
-                        <div
-                            key={lead.id}
-                            onClick={() => setSelectedId(lead.id)}
-                            className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col"
-                        >
-                            <div className="flex items-start justify-between mb-3">
-                                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md ${lead.lookingFor === 'rent' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'}`}>
-                                    {lead.lookingFor}
-                                </span>
-                                <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-900 px-2 py-1 rounded-md">
-                                    {new Date(lead.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short'})}
-                                </span>
+                    filtered.map(lead => {
+                        // Smart Data Extraction for cards
+                        let data: any = {};
+                        if (lead.message) {
+                            try {
+                                const jsonStr = lead.message.replace('Onboarding Details: ', '').trim();
+                                data = JSON.parse(jsonStr);
+                            } catch(e) {}
+                        }
+                        const smart = {
+                            area: lead.preferredArea || data.preferredArea || data.area || '—',
+                            budget: lead.budgetRange || data.budgetRange || data.budget || '—',
+                            lookingFor: lead.lookingFor || data.lookingFor || '—'
+                        };
+
+                        return (
+                            <div
+                                key={lead.id}
+                                onClick={() => setSelectedId(lead.id)}
+                                className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col"
+                            >
+                                <div className="flex items-start justify-between mb-3">
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${smart.lookingFor === 'rent' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'}`}>
+                                        {smart.lookingFor}
+                                    </span>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(lead.id); }}
+                                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                        title="Delete Response"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                                
+                                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 transition-colors line-clamp-1">{lead.name}</h3>
+                                <p className="text-sm text-gray-500 mb-4 font-medium">{lead.phone}</p>
+                                
+                                <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                                    <div className="flex justify-between text-xs"><span className="text-gray-400">Area:</span><span className="font-semibold text-gray-700 dark:text-gray-300 truncate ml-2 max-w-[120px]">{smart.area}</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-gray-400">Budget:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{smart.budget}</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-gray-400">Date:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{new Date(lead.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short'})}</span></div>
+                                </div>
                             </div>
-                            
-                            <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 transition-colors line-clamp-1">{lead.name}</h3>
-                            <p className="text-sm text-gray-500 mb-4 font-medium">{lead.phone}</p>
-                            
-                            <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
-                                <div className="flex justify-between text-xs"><span className="text-gray-400">Area:</span><span className="font-semibold text-gray-700 dark:text-gray-300 truncate ml-2">{lead.preferredArea || '—'}</span></div>
-                                <div className="flex justify-between text-xs"><span className="text-gray-400">Type:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{lead.propertyType || '—'}</span></div>
-                                <div className="flex justify-between text-xs"><span className="text-gray-400">Budget:</span><span className="font-semibold text-gray-700 dark:text-gray-300">{lead.budgetRange || '—'}</span></div>
-                            </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
@@ -132,6 +150,24 @@ export default function AdminLeadsPage() {
             {selectedId && (() => {
                 const lead = leads.find(l => l.id === selectedId);
                 if (!lead) return null;
+
+                // Smart Data Extraction
+                const getLeadData = () => {
+                    let data: any = {};
+                    if (lead.message) {
+                        try {
+                            const jsonStr = lead.message.replace('Onboarding Details: ', '').trim();
+                            data = JSON.parse(jsonStr);
+                        } catch(e) {}
+                    }
+                    return {
+                        area: lead.preferredArea || data.preferredArea || data.area || '—',
+                        type: lead.propertyType || data.propertyType || data.type || '—',
+                        budget: lead.budgetRange || data.budgetRange || data.budget || '—',
+                        lookingFor: lead.lookingFor || data.lookingFor || '—'
+                    };
+                };
+                const smart = getLeadData();
 
                 const renderMessage = (message: string) => {
                     let jsonStr = message;
@@ -221,10 +257,10 @@ export default function AdminLeadsPage() {
 
                                     <section className="space-y-4">
                                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800 pb-2">Requirements</h4>
-                                        <DetailItem label="Looking For" value={lead.lookingFor.toUpperCase()} />
-                                        <DetailItem label="Property Type" value={lead.propertyType} />
-                                        <DetailItem label="Budget Range" value={lead.budgetRange} />
-                                        <DetailItem label="Preferred Area" value={lead.preferredArea} />
+                                        <DetailItem label="Looking For" value={smart.lookingFor.toUpperCase()} />
+                                        <DetailItem label="Property Type" value={smart.type} />
+                                        <DetailItem label="Budget Range" value={smart.budget} />
+                                        <DetailItem label="Preferred Area" value={smart.area} />
                                     </section>
                                 </div>
 
