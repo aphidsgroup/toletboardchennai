@@ -130,6 +130,38 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
     const filtered = leads.filter(l=> l.name.toLowerCase().includes(search.toLowerCase()) || l.phone.includes(search) || (l.preferredArea||'').toLowerCase().includes(search.toLowerCase()) || (l.propertyAddress||'').toLowerCase().includes(search.toLowerCase()));
     const statusColor = (s: string) => STATUSES.find(st=>st.value===s)?.color || 'bg-gray-100 text-gray-600';
 
+    const exportCSV = () => {
+        if (leads.length === 0) return;
+        const headers = ['ID', 'Name', 'Phone', 'Email', 'WhatsApp', 'Source', 'Status', 'Assigned To', 'Follow Up Date'];
+        if (leadType === 'owner') headers.push('Property Address', 'Property Type', 'Expected Rent');
+        else headers.push('Preferred Area', 'BHK Preference', 'Budget Range', 'Looking For');
+        headers.push('Notes', 'Created At');
+
+        const csvRows = [headers.join(',')];
+        leads.forEach(l => {
+            const escape = (str: string | null | undefined | number) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+            const notes = l.notes ? JSON.parse(l.notes).map((n:any)=>`${n.note} (${n.by})`).join('; ') : '';
+            const row = [
+                escape(l.id), escape(l.name), escape(l.phone), escape(l.email), escape(l.whatsappNumber), escape(l.source), escape(l.status), escape(l.assignedTo), escape(l.followUpDate ? new Date(l.followUpDate).toLocaleDateString() : '')
+            ];
+            if (leadType === 'owner') {
+                row.push(escape(l.propertyAddress), escape(l.propertyType), escape(l.expectedRent));
+            } else {
+                row.push(escape(l.preferredArea), escape(l.bhkPreference), escape(l.budgetRange), escape(l.lookingFor));
+            }
+            row.push(escape(notes), escape(l.createdAt));
+            csvRows.push(row.join(','));
+        });
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${leadType}-leads.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full"/></div>;
 
     return (
@@ -143,11 +175,17 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{totalCount} lead{totalCount!==1?'s':''}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
-                        <button onClick={()=>setShowImport(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-colors">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                            Import Sheet
-                        </button>
-                        <button onClick={()=>setShowForm(true)} className="btn-premium px-3 py-2 rounded-xl text-xs font-semibold">+ Add Lead</button>
+                        <div className="flex gap-1.5">
+                            <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold transition-colors">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Export CSV
+                            </button>
+                            <button onClick={()=>setShowImport(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-colors">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                Import Sheet
+                            </button>
+                        </div>
+                        <button onClick={()=>setShowForm(true)} className="btn-premium px-3 py-2 rounded-xl text-xs font-semibold w-full">+ Add Lead</button>
                     </div>
                 </div>
 
