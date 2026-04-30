@@ -367,6 +367,9 @@ export default function LeadsPage({ leadType, backHref, title, role = 'admin' }:
                                             displayValue = value.join(', ');
                                         } else if (typeof value === 'boolean') {
                                             displayValue = value ? 'Yes' : 'No';
+                                        } else if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+                                            // Format ISO Date strings
+                                            displayValue = new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
                                         } else if (typeof value === 'object' && value !== null) {
                                             displayValue = JSON.stringify(value);
                                         } else {
