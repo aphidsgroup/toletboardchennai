@@ -40,15 +40,14 @@ export default function PropertyLeadForm({ propertyId, propertyTitle }: Property
         }
 
         try {
-            const res = await fetch('/api/leads', {
+            const res = await fetch('/api/callbacks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name,
                     phone: cleanPhone,
-                    lookingFor: 'rent',
-                    message: `Interested in: ${propertyTitle}`,
                     propertyId,
+                    propertyTitle,
                 }),
             });
 

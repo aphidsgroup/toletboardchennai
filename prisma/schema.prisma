@@ -247,3 +247,16 @@ model OnboardingSubmission {
   @@index([formType])
   @@index([status])
 }
+
+model CallbackRequest {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String
+  propertyId    String
+  propertyTitle String
+  status        String   @default("pending") // "pending", "called", "no_answer", "cancelled"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+}

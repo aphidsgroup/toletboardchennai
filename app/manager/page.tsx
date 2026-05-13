@@ -13,8 +13,9 @@ export default function ManagerDashboard() {
     const [users, setUsers] = useState<User[]>([]);
     const [properties, setProperties] = useState<PropertyItem[]>([]);
     const [submissions, setSubmissions] = useState<OnboardingSubmission[]>([]);
+    const [callbacks, setCallbacks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users'|'properties'|'forms'>('properties');
+    const [tab, setTab] = useState<'users'|'properties'|'forms'|'callbacks'>('properties');
     const [selectedLeadId, setSelectedLeadId] = useState<string|null>(null);
     const [authorized, setAuthorized] = useState(true);
     const [permissions, setPermissions] = useState<Permissions>({ viewLeads:true, viewUsers:true, viewProperties:true, addProperties:false, editProperties:false });
@@ -33,6 +34,7 @@ export default function ManagerDashboard() {
             if (perms.viewUsers) fetches.push(fetch('/api/manager/users').then(r=>r.json()).then(d=>setUsers(d.users||[])));
             if (perms.viewProperties) fetches.push(fetch('/api/manager/properties').then(r=>r.json()).then(d=>setProperties(d.properties||[])));
             fetches.push(fetch('/api/admin/onboarding').then(r=>r.json()).then(d=>setSubmissions(d.submissions||[])));
+            fetches.push(fetch('/api/callbacks').then(r=>r.json()).then(d=>setCallbacks(Array.isArray(d) ? d : [])));
             Promise.all(fetches).then(()=>setLoading(false));
             if (!perms.viewLeads && perms.viewUsers) setTab('users');
             else if (!perms.viewLeads && !perms.viewUsers && perms.viewProperties) setTab('properties');
@@ -66,6 +68,7 @@ export default function ManagerDashboard() {
         ...(permissions.viewUsers ? [{ key:'users' as const, label:'Users', count:users.length, icon:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }] : []),
         ...(permissions.viewProperties ? [{ key:'properties' as const, label:'Properties', count:properties.length, icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' }] : []),
         { key:'forms' as const, label:'Forms', count:submissions.length, icon:'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+        { key:'callbacks' as const, label:'Callbacks', count:callbacks.length, icon:'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' },
     ];
 
     return (
@@ -257,6 +260,37 @@ export default function ManagerDashboard() {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        )}
+                        {/* Callbacks Tab */}
+                        {tab === 'callbacks' && (
+                            <div className="space-y-3">
+                                {callbacks.length === 0 ? <EmptyState text="No callback requests yet" /> : callbacks.map(cb => (
+                                    <div key={cb.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div>
+                                                <div className="font-bold text-gray-900 dark:text-white">{cb.name}</div>
+                                                <div className="text-xs text-gray-500 mt-1">{cb.propertyTitle}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-gray-400">{new Date(cb.createdAt).toLocaleDateString()}</div>
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${cb.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                                                    {cb.status.toUpperCase()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <a href={`tel:${cb.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl text-xs font-semibold">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                Call
+                                            </a>
+                                            <a href={`https://wa.me/${cb.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-xs font-semibold">
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.4 0-4.637-.856-6.358-2.282l-.446-.37-3.07 1.03 1.03-3.07-.37-.446A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                                WhatsApp
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </>
