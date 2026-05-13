@@ -583,12 +583,12 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                         <p className="text-lg text-gray-600 dark:text-gray-400">
                             {property.areaName}, {property.city}
                         </p>
-                        <PropertyStatsBar propertyId={property.id} />
                         {property.propertySubtype && (
                             <p className="text-sm text-gray-500 dark:text-gray-500">
                                 {property.propertySubtype}
                             </p>
                         )}
+                        <PropertyStatsBar propertyId={property.id} />
                         {property.isVerified && (
                             <div className="mt-2">
                                 <VerifiedBadge size="md" />
