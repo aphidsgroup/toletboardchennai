@@ -27,6 +27,7 @@ import VerifiedBadge from '@/components/VerifiedBadge';
 import FloatingShortlistButton from '@/components/FloatingShortlistButton';
 import PropertySlider from '@/components/PropertySlider';
 import PropertyLeadForm from '@/components/PropertyLeadForm';
+import PropertyStatsBar from '@/components/PropertyStatsBar';
 
 interface PropertyPageProps {
     params: Promise<{
@@ -582,6 +583,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                         <p className="text-lg text-gray-600 dark:text-gray-400">
                             {property.areaName}, {property.city}
                         </p>
+                        <PropertyStatsBar propertyId={property.id} />
                         {property.propertySubtype && (
                             <p className="text-sm text-gray-500 dark:text-gray-500">
                                 {property.propertySubtype}

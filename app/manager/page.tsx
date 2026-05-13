@@ -165,8 +165,17 @@ export default function ManagerDashboard() {
                                                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${prop.dealType==='rent' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{prop.dealType}</span>
                                             </div>
                                         </div>
-                                        <div className="text-sm font-bold text-primary-600 dark:text-primary-400 mb-3">
-                                            ₹{prop.priceInr?.toLocaleString('en-IN')}/mo
+                                        <div className="flex items-center gap-4 mb-3">
+                                            <div className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                                                ₹{prop.priceInr?.toLocaleString('en-IN')}/mo
+                                            </div>
+                                            <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
+                                                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                {(prop as any).viewCount || 0} views
+                                            </div>
                                         </div>
                                         {permissions.editProperties && (
                                             <div className="grid grid-cols-3 gap-2">

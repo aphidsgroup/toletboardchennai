@@ -33,6 +33,7 @@ export async function GET(request: Request) {
                 usageType: true,
                 priceInr: true,
                 isPublished: true,
+                viewCount: true,
                 createdAt: true,
             },
         });
