@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
         return { title: 'Property Not Found' };
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://toletboardchennai.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.toletboardchennai.in';
     const propertyUrl = `${siteUrl}/p/${property.slug}`;
     const description = `${property.title} - ${formatPrice(property.priceInr)}/mo | ${formatSize(property.sizeSqft)} | ${property.areaName}, ${property.city}. ${property.dealType === 'rent' ? 'Available for rent' : 'Available for lease'} with 360Â° virtual tour.`;
     const images = property.images ? JSON.parse(property.images) : [];
@@ -128,6 +128,14 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
             title: `${property.title} | ${formatPrice(property.priceInr)}/mo`,
             description,
             images: [ogImage],
+        },
+        robots: {
+            index: false,
+            follow: false,
+            googleBot: {
+                index: false,
+                follow: false,
+            },
         },
     };
 }
@@ -169,7 +177,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
     // Use saved order or default
     const orderedSections = sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER;
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://toletboardchennai.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.toletboardchennai.in';
     const propertyUrl = `${siteUrl}/p/${property.slug}`;
 
     const whatsappUrl = buildWhatsAppUrl(
