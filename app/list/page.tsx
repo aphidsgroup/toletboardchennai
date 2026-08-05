@@ -38,14 +38,25 @@ export async function generateMetadata({ searchParams }: ListPageProps): Promise
 
     const title = parts.join(' ');
     const description = `Browse ${params.deal || 'all'} ${params.use || ''} properties ${params.area ? `in ${params.area}, ` : ''}Chennai with 360° virtual tours. Compare prices, sizes, and amenities.`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.toletboardchennai.in';
 
     return {
         title,
         description,
+        alternates: {
+            canonical: '/list',
+        },
         openGraph: {
             title,
             description,
             type: 'website',
+            url: `${siteUrl}/list`,
+            siteName: 'Tolet Board Chennai',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
         },
     };
 }
@@ -163,8 +174,27 @@ export default async function ListPage({ searchParams }: ListPageProps) {
 
     // Get unique areas for search bar
     const availableAreas = [...new Set(properties.map(p => p.areaName).filter(Boolean))] as string[];
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.toletboardchennai.in';
+    const listJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'ToLet Board Chennai property results',
+        url: `${siteUrl}/list`,
+        numberOfItems: properties.length,
+        itemListElement: properties.slice(0, 20).map((property, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: `${siteUrl}/p/${property.slug}`,
+            name: property.title,
+        })),
+    };
 
     return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }}
+            />
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
             <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
@@ -280,5 +310,6 @@ export default async function ListPage({ searchParams }: ListPageProps) {
             {/* Filter Sheet */}
             <FilterSheet areasBySubtype={areasBySubtype} />
         </main>
+        </>
     );
 }

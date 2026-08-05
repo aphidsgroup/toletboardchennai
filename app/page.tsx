@@ -8,6 +8,30 @@ import LeadPopupForm from '@/components/LeadPopupForm';
 export const metadata: Metadata = {
     title: 'Tolet Board Chennai - 360° Virtual Property Tours | Rent & Lease Properties',
     description: 'Find your perfect property in Chennai with immersive 360° virtual tours. Browse apartments, villas, offices, shops and more. Rent or lease residential and commercial properties across Chennai.',
+    keywords: [
+        'tolet board chennai',
+        'rent property chennai',
+        'lease property chennai',
+        'apartment rent chennai',
+        'commercial space chennai',
+        '360 virtual property tours chennai',
+    ],
+    alternates: {
+        canonical: '/',
+    },
+    openGraph: {
+        title: 'Tolet Board Chennai - 360° Virtual Property Tours | Rent & Lease Properties',
+        description: 'Find your perfect property in Chennai with immersive 360° virtual tours. Browse apartments, villas, offices, shops and more. Rent or lease residential and commercial properties across Chennai.',
+        url: 'https://www.toletboardchennai.in',
+        type: 'website',
+        siteName: 'Tolet Board Chennai',
+        locale: 'en_IN',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Tolet Board Chennai - 360° Virtual Property Tours | Rent & Lease Properties',
+        description: 'Find your perfect property in Chennai with immersive 360° virtual tours.',
+    },
 };
 
 export const revalidate = 60;

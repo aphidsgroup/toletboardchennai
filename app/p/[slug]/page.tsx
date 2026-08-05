@@ -92,7 +92,7 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.toletboardchennai.in';
     const propertyUrl = `${siteUrl}/p/${property.slug}`;
-    const description = `${property.title} - ${formatPrice(property.priceInr)}/mo | ${formatSize(property.sizeSqft)} | ${property.areaName}, ${property.city}. ${property.dealType === 'rent' ? 'Available for rent' : 'Available for lease'} with 360Â° virtual tour.`;
+    const description = `${property.title} - ${formatPrice(property.priceInr)}/mo | ${formatSize(property.sizeSqft)} | ${property.areaName}, ${property.city}. ${property.dealType === 'rent' ? 'Available for rent' : 'Available for lease'} with 360° virtual tour.`;
     const images = property.images ? JSON.parse(property.images) : [];
     const ogImage = images.length > 0 ? images[0] : `${siteUrl}/logo.png`;
 
@@ -196,7 +196,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         '@context': 'https://schema.org',
         '@type': 'RealEstateListing',
         name: property.title,
-        description: `${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} available for ${property.dealType} in ${property.areaName}, ${property.city}. ${formatSize(property.sizeSqft)}, ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}.${property.tourEmbedUrl ? ' 360Â° virtual tour available.' : ''}`,
+        description: `${bhkLabel ? bhkLabel + ' ' : ''}${propertyTypeLabel} available for ${property.dealType} in ${property.areaName}, ${property.city}. ${formatSize(property.sizeSqft)}, ${formatPrice(property.priceInr)}${property.dealType === 'rent' ? '/month' : ''}.${property.tourEmbedUrl ? ' 360° virtual tour available.' : ''}`,
         url: propertyUrl,
         datePosted: property.createdAt.toISOString(),
         ...(images.length > 0 && { image: images }),
@@ -368,7 +368,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                         allowFullScreen
                                         loading="lazy"
-                                        title={`360Â° Tour of ${property.title}`}
+                                        title={`360° Tour of ${property.title}`}
                                     />
                                 );
                             })()}
