@@ -8,32 +8,17 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: '*',
                 allow: '/',
-                disallow: ['/admin/', '/api/', '/register', '/manager/', '/login'],
-            },
-            // Explicitly allow AI crawlers
-            {
-                userAgent: 'GPTBot',
-                allow: '/',
-            },
-            {
-                userAgent: 'Google-Extended',
-                allow: '/',
-            },
-            {
-                userAgent: 'ClaudeBot',
-                allow: '/',
-            },
-            {
-                userAgent: 'Applebot-Extended',
-                allow: '/',
-            },
-            {
-                userAgent: 'PerplexityBot',
-                allow: '/',
-            },
-            {
-                userAgent: 'anthropic-ai',
-                allow: '/',
+                disallow: [
+                    '/admin/',
+                    '/api/',
+                    '/account',
+                    '/forms/',
+                    '/login',
+                    '/manager/',
+                    '/p/',
+                    '/register',
+                    '/shortlist',
+                ],
             },
         ],
         sitemap: `${siteUrl}/sitemap.xml`,

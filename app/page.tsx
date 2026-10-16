@@ -208,6 +208,21 @@ export default async function HomePage() {
                         </div>
                     </div>
 
+                    <section className="mb-8 rounded-2xl border border-primary-100 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Before you sign a tenancy agreement</h2>
+                        <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                            Keep the agreement in writing. Tamil Nadu&apos;s tenancy portal says agreements executed after the Act began must be registered with the Rent Authority within 90 days. Check the official FAQ for the rule and its scope before you sign.
+                        </p>
+                        <a
+                            href="https://tenancy.tn.gov.in/Home/FAQ"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-block text-sm font-medium text-primary-700 underline underline-offset-4 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-200"
+                        >
+                            Read the Tamil Nadu tenancy FAQ
+                        </a>
+                    </section>
+
                     {/* 5. WhatsApp + Call Us */}
                     <div className="mb-8">
                         <div className="flex gap-4">

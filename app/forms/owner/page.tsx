@@ -328,7 +328,7 @@ export default function OwnerOnboardingForm() {
                         <div className="space-y-8 animate-fade-in">
                             <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl space-y-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                                 <h4 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs">Terms & Conditions</h4>
-                                <p><span className="font-bold text-gray-800 dark:text-gray-200">Service Fee:</span> A 50% fee of one month's rent is due on 'Advance Day'.</p>
+                                <p><span className="font-bold text-gray-800 dark:text-gray-200">Service Fee:</span> A 50% fee of one month&apos;s rent is due on &apos;Advance Day&apos;.</p>
                                 <p><span className="font-bold text-gray-800 dark:text-gray-200">Shoot Authorization:</span> You authorize 360° virtual tour photography of the premises.</p>
                                 <p><span className="font-bold text-gray-800 dark:text-gray-200">Unique Digital Tracking:</span> All virtual tour links are tracked to immutable records of leads.</p>
                                 <p><span className="font-bold text-gray-800 dark:text-gray-200">Anti-Bypass Protection:</span> Re-verification within 100 days of introduction ensures bypass penalties of 100% of service fee.</p>
