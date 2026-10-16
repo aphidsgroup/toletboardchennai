@@ -150,7 +150,7 @@ export default function TenantFormPage() {
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Form Submitted!</h2>
                     <p className="text-gray-600 dark:text-gray-400 mb-8">
-                        Thank you for your interest! We'll contact you soon with suitable rental options.
+                        Thank you for your interest! We&apos;ll contact you soon with suitable rental options.
                     </p>
                     <button 
                         onClick={() => window.location.reload()}

@@ -1052,7 +1052,7 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
 
                     {formData.propertyDetails.length === 0 && (
                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                            No property details added yet. Click "+ Add Field" to get started.
+                            No property details added yet. Click &quot;+ Add Field&quot; to get started.
                         </div>
                     )}
                 </div>
@@ -1284,7 +1284,7 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
                 {formData.customHighlights.length === 0 ? (
                     <div className="text-center py-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
                         <p className="text-gray-500 dark:text-gray-400">Using auto-generated highlights (size, price, rooms, etc.)</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Click "+ Add Highlight" to add custom highlights that will replace the auto-generated ones</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Click &quot;+ Add Highlight&quot; to add custom highlights that will replace the auto-generated ones</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -1356,7 +1356,7 @@ export default function PropertyForm({ property, mode, apiBasePath = '/api/admin
                 {formData.customFaqs.length === 0 ? (
                     <div className="text-center py-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
                         <p className="text-gray-500 dark:text-gray-400">Using auto-generated FAQs (area info, pricing, connectivity)</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Click "+ Add FAQ" to add custom FAQs that will replace the auto-generated ones</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Click &quot;+ Add FAQ&quot; to add custom FAQs that will replace the auto-generated ones</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
