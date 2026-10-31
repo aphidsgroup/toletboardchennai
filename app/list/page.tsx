@@ -37,7 +37,10 @@ export async function generateMetadata({ searchParams }: ListPageProps): Promise
     parts.push('| Chennai');
 
     const title = parts.join(' ');
-    const description = `Browse ${params.deal || 'all'} ${params.use || ''} properties ${params.area ? `in ${params.area}, ` : ''}Chennai with 360° virtual tours. Compare prices, sizes, and amenities.`;
+    const dealLabel = params.deal === 'rent' ? 'rental' : params.deal === 'lease' ? 'lease' : 'rent and lease';
+    const usageLabel = params.use ? `${params.use} ` : '';
+    const location = params.area ? ` in ${params.area}` : '';
+    const description = `Browse ${usageLabel}${dealLabel} property listings${location}, Chennai. Listings with a 360° tour include it on the property page.`;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.toletboardchennai.in';
 
     return {
@@ -292,10 +295,10 @@ export default async function ListPage({ searchParams }: ListPageProps) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                            No properties found
+                            No published properties match this search
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-6">
-                            Try adjusting your filters to see more results
+                            Try different filters or check back when new listings are published.
                         </p>
                         <Link
                             href="/list"
